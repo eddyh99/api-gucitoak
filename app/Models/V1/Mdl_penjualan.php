@@ -1,0 +1,169 @@
+<?php
+namespace App\Models\V1;
+
+use CodeIgniter\Model;
+use CodeIgniter\Database\Exceptions\DatabaseException;
+
+class Mdl_penjualan extends Model
+{
+    protected $server_tz = "Asia/Singapore";
+
+    public function __construct()
+    {
+        $this->db = \Config\Database::connect();
+    }
+
+    public function get_penjualan($awal,$akhir){
+        $sql="SELECT 
+            	a.nonota,
+                b.namapelanggan, 
+                a.tanggal,
+                e.namasales,
+                SUM(c.jumlah * (
+                    CASE 
+                        WHEN b.harga = 1 THEN f.harga1
+                        WHEN b.harga = 2 THEN f.harga2
+                        WHEN b.harga = 3 THEN f.harga3
+                        ELSE 0
+                    END
+                )) AS amount,
+                a.method
+            FROM 
+                penjualan a
+            INNER JOIN 
+                pelanggan b ON a.pelanggan_id = b.id
+            INNER JOIN 
+                penjualan_detail c ON a.nonota = c.nonota
+            INNER JOIN 
+                barang_detail d ON c.barcode = d.barcode
+            INNER JOIN sales e ON a.sales_id=e.id
+            INNER JOIN (
+                SELECT 
+                    hr.id_barang,
+                    hr.harga1,
+                    hr.harga2,
+                    hr.harga3,
+                    hr.tanggal
+                FROM 
+                    harga hr
+                    INNER JOIN (
+                        SELECT 
+                            id_barang, MAX(tanggal) AS max_tanggal
+                        FROM 
+                            harga
+                        GROUP BY 
+                            id_barang
+                    ) latest_harga ON hr.id_barang = latest_harga.id_barang AND hr.tanggal = latest_harga.max_tanggal
+            ) f ON f.id_barang = d.barang_id AND f.tanggal <= a.tanggal";
+            if ($awal==$akhir){
+                $sql.=" WHERE date(a.tanggal)='$awal'";
+            }else{
+                $sql.=" WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir'";
+            }
+            $sql.=" GROUP BY b.namapelanggan, a.tanggal;";
+            return $this->db->query($sql)->getResult();
+                
+    }
+    
+    public function getNota(){
+        $sql="SELECT LPAD(COALESCE(MAX(nonota) + 1, 1), 6, '0') AS nonota
+                FROM penjualan";
+        return $this->db->query($sql)->getRow()->nonota;
+    }
+    
+    public function add($mdata,$detail)
+    {
+        try {
+            // Start Transaction
+            $this->db->transBegin();
+        
+            // Table initialization
+            $penjualan = $this->db->table("penjualan");
+            $jual_detail = $this->db->table("penjualan_detail");
+        
+            // Insert into 'penjualan'
+            if (!$penjualan->insert($mdata)) {
+                // Rollback if 'penjualan' insertion fails
+                $this->db->transRollback();
+                return (object) [
+                    "code"    => 500,
+                    "message" => "Gagal menyimpan data penjualan"
+                ];
+            }
+        
+            // InsertBatch into 'penjualan_detail'
+            if (!$jual_detail->insertBatch($detail)) {
+                // Rollback if 'penjualan_detail' insertion fails
+                $this->db->transRollback();
+                return (object) [
+                    "code"    => 500,
+                    "message" => "Gagal menyimpan detail penjualan"
+                ];
+            }
+        
+            // Commit the transaction
+            $this->db->transCommit();
+        
+            return (object) [
+                "code"    => 201,
+                "message" => "Penjualan berhasil ditambahkan"
+            ];
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of an exception
+            $this->db->transRollback();
+        
+            // Handle exception
+            return (object) [
+                "code"    => 500,
+                "message" => "Terjadi kesalahan pada server: " . $e->getMessage()
+            ];
+        }
+
+    }
+
+    public function getbarang_jual($nota){
+        $sql="SELECT 
+                    SUM(pd.jumlah) AS jumlah, 
+                    br.namabarang, 
+                    CASE 
+                        WHEN pl.harga = 1 THEN hr.harga1
+                        WHEN pl.harga = 2 THEN hr.harga2
+                        WHEN pl.harga = 3 THEN hr.harga3
+                        ELSE 0
+                    END AS harga
+                FROM 
+                    penjualan pj
+                INNER JOIN 
+                    penjualan_detail pd ON pj.nonota = pd.nonota
+                INNER JOIN 
+                    barang_detail bd ON pd.barcode = bd.barcode
+                INNER JOIN 
+                    barang br ON bd.barang_id = br.id
+                INNER JOIN 
+                    pelanggan pl ON pl.id = pj.pelanggan_id
+                INNER JOIN (
+                    SELECT 
+                        hr.id_barang, 
+                        hr.harga1, 
+                        hr.harga2, 
+                        hr.harga3, 
+                        hr.tanggal
+                    FROM 
+                        harga hr
+                    INNER JOIN (
+                        SELECT 
+                            id_barang, MAX(tanggal) AS max_tanggal
+                        FROM 
+                            harga
+                        GROUP BY 
+                            id_barang
+                    ) latest_harga ON hr.id_barang = latest_harga.id_barang AND hr.tanggal = latest_harga.max_tanggal
+                ) hr ON hr.id_barang = bd.barang_id AND hr.tanggal <= pj.tanggal
+                WHERE 
+                    pj.nonota = ?
+                GROUP BY 
+                    br.id, br.namabarang, pl.harga;
+            ";
+        return $this->db->query($sql,$nota)->getResult();
+    }
+}

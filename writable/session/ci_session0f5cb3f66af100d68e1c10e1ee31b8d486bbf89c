@@ -1,0 +1,22 @@
+__ci_last_regenerate|i:1722796470;_ci_previous_url|s:54:"http://localhost/pnglobal/index.php/homepage/contactus";failed|s:106:"	<div class="errors" role="alert">
+		<ul>
+					<li>The Schedule field is required.</li>
+				</ul>
+	</div>
+";__ci_vars|a:3:{s:6:"failed";s:3:"new";s:13:"_ci_old_input";s:3:"new";s:21:"_ci_validation_errors";s:3:"new";}_ci_old_input|a:2:{s:3:"get";a:0:{}s:4:"post";a:8:{s:5:"fname";s:10:"Raymondpub";s:5:"lname";s:10:"Raymondpub";s:5:"email";a:1:{i:0;s:33:"no.reply.MatthewPeeters@gmail.com";}s:8:"whatsapp";s:11:"88223859268";s:4:"desc";s:783:"Hi! pnglobalinternational.com 
+ 
+Do you know that it is possible to send a letter in a completely legitimate way? 
+When such business offers are sent, no personal data is used, and messages are sent to forms specifically designed to receive messages and appeals safely and securely. Communication Forms ensure that messages are not treated as spam, as these messages are regarded as essential. 
+You're invited to sample our service at no cost. 
+We shall send up to 50,000 messages to you. 
+ 
+The cost of sending one million messages is $59. 
+ 
+This offer is automatically generated. 
+ 
+Contact us. 
+Telegram - https://t.me/FeedbackFormEU 
+Skype  live:contactform_18 
+WhatsApp - +375259112693 
+WhatsApp  https://wa.me/+375259112693 
+We only use chat for communication.";s:8:"timezone";s:19:"America/Tegucigalpa";s:8:"schedule";s:0:"";s:6:"submit";s:0:"";}}_ci_validation_errors|a:1:{s:8:"schedule";s:31:"The Schedule field is required.";}
