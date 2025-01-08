@@ -44,16 +44,18 @@ class Laporan extends BaseController
     public function retursup() {
         $bulan     = htmlspecialchars($this->request->getGet('bulan'));
         $tahun     = htmlspecialchars($this->request->getGet('tahun'));
+        $suplier  = $this->request->getGet('suplier');
 
-        $result = $this->retur->get_laporan_retursup($bulan, $tahun);
+        $result = $this->retur->get_laporan_retursup($bulan, $tahun, $suplier);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 
     public function returpel() {
         $bulan     = htmlspecialchars($this->request->getGet('bulan'));
         $tahun     = htmlspecialchars($this->request->getGet('tahun'));
+        $pelanggan  = $this->request->getGet('pelanggan');
 
-        $result = $this->retur->get_laporan_returpel($bulan, $tahun);
+        $result = $this->retur->get_laporan_returpel($bulan, $tahun, $pelanggan);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 }
