@@ -14,6 +14,7 @@ class Laporan extends BaseController
         $this->penjualan       = model('App\Models\V1\Mdl_penjualan');
         $this->pembelian       = model('App\Models\V1\Mdl_pembelian');
         $this->barang       = model('App\Models\V1\Mdl_barang');
+        $this->retur       = model('App\Models\V1\Mdl_retur');
 	}
 
     public function barang() {
@@ -38,5 +39,21 @@ class Laporan extends BaseController
 
         $result = $this->pembelian->get_laporan_pembelian($awal, $akhir, $barang);
         return $this->respond(error_msg(200,"pembelian",null,$result),200);
+    }
+
+    public function retursup() {
+        $bulan     = htmlspecialchars($this->request->getGet('bulan'));
+        $tahun     = htmlspecialchars($this->request->getGet('tahun'));
+
+        $result = $this->retur->get_laporan_retursup($bulan, $tahun);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
+    public function returpel() {
+        $bulan     = htmlspecialchars($this->request->getGet('bulan'));
+        $tahun     = htmlspecialchars($this->request->getGet('tahun'));
+
+        $result = $this->retur->get_laporan_returpel($bulan, $tahun);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 }
