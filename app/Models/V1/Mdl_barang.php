@@ -591,7 +591,6 @@ class Mdl_barang extends Model
     return $query->getResult();
 }
 
-// hr jugal dan beli belum fix
 public function get_laporan_barang() {
     $sql = 'SELECT 
             a.*, 
@@ -648,11 +647,106 @@ public function get_laporan_barang() {
                     pd.id = latest.id
             ) pd ON pd.barcode = bd.barcode
         WHERE 
-            a.is_delete = "no"
-    ';
+            a.is_delete = "no"';
 
     $query = $this->db->query($sql)->getResult();
     return $query;
+}
+
+public function get_mutasi_stok() {
+    $sql = " SELECT
+                b.namabarang,
+                COALESCE(c.jumlah_awal, 0) AS awal, -- belum fix
+                COALESCE(c.jumlah, 0) AS masuk,
+                COALESCE(d.jumlah, 0) AS terjual,
+                COALESCE(e.jumlah, 0) AS retursup,
+                COALESCE(f.jumlah, 0) AS returpel,
+                COALESCE(g.jumlah, 0) AS sesuai,
+                (
+                    COALESCE(c.jumlah_awal, 0) 
+                    + COALESCE(c.jumlah, 0) 
+                    + COALESCE(f.jumlah, 0) 
+                    + COALESCE(g.jumlah, 0) 
+                    - COALESCE(d.jumlah, 0) 
+                    - COALESCE(e.jumlah, 0) 
+                    - COALESCE(h.jumlah, 0)
+                ) AS sisa
+            FROM
+                barang b
+            LEFT JOIN (
+                SELECT
+                    bd.barang_id,
+                    SUM(pd.jumlah) AS jumlah_awal, --awal
+                    SUM(pd.jumlah) AS jumlah -- masuk
+                FROM
+                    barang_detail bd
+                INNER JOIN
+                    pembelian_detail pd ON pd.barcode = bd.barcode
+                GROUP BY
+                    bd.barang_id
+            ) c ON c.barang_id = b.id
+            LEFT JOIN (
+                SELECT
+                    bd.barang_id, -- terjual
+                    SUM(jd.jumlah) AS jumlah
+                FROM
+                    barang_detail bd
+                INNER JOIN
+                    penjualan_detail jd ON jd.barcode = bd.barcode
+                GROUP BY
+                    bd.barang_id
+            ) d ON d.barang_id = b.id
+            LEFT JOIN (
+                SELECT
+                    bd.barang_id, -- retur by suplier
+                    SUM(rb.jumlah) AS jumlah
+                FROM
+                    barang_detail bd
+                INNER JOIN
+                    retur_beli_detail rb ON rb.barcode = bd.barcode
+                GROUP BY
+                    bd.barang_id
+            ) e ON e.barang_id = b.id
+            LEFT JOIN (
+                SELECT
+                    bd.barang_id, -- retur by pelanggan
+                    SUM(rj.jumlah) AS jumlah
+                FROM
+                    barang_detail bd
+                INNER JOIN
+                    retur_jual_detail rj ON rj.barcode = bd.barcode
+                GROUP BY
+                    bd.barang_id
+            ) f ON f.barang_id = b.id
+            LEFT JOIN (
+                SELECT
+                    bd.barang_id, -- penyesuaian
+                    SUM(p.jumlah) AS jumlah
+                FROM
+                    barang_detail bd
+                INNER JOIN
+                    penyesuaian p ON p.barcode = bd.barcode
+                WHERE
+                    p.approved = 1
+                GROUP BY
+                    bd.barang_id
+            ) g ON g.barang_id = b.id
+            LEFT JOIN (
+                SELECT
+                    bd.barang_id, -- disposal
+                    SUM(dd.jumlah) AS jumlah
+                FROM
+                    barang_detail bd
+                INNER JOIN
+                    disposal_detail dd ON dd.barcode = bd.barcode
+                GROUP BY
+                    bd.barang_id
+            ) h ON h.barang_id = b.id
+            WHERE
+                b.is_delete = 'no'
+            GROUP BY -- grup berdasarkan id dan nama barang
+                b.id, b.namabarang";   
+    return $this->db->query($sql)->getResult();
 }
 
 }

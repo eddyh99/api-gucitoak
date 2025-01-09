@@ -22,6 +22,15 @@ class Laporan extends BaseController
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 
+    public function mutasi_stok()
+    {
+        $bulan     = htmlspecialchars($this->request->getGet('bulan'));
+        $tahun     = htmlspecialchars($this->request->getGet('tahun'));
+
+        $result = $this->barang->get_mutasi_stok($bulan, $tahun);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
     public function mutasi_penjualan()
     {
         $bulan     = htmlspecialchars($this->request->getGet('bulan'));
