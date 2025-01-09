@@ -113,4 +113,30 @@ class Mdl_pembelian extends Model
         return $this->db->query($sql,$id)->getResult();
     }
 
+    public function get_laporan_pembelian($awal,$akhir, $kd_brg){
+        $sql="SELECT 
+                a.id,
+            	a.nonota,
+                b.namasuplier, 
+                a.tanggal,
+                SUM(c.jumlah * c.harga) AS amount,
+                a.method
+            FROM 
+                pembelian a
+            INNER JOIN 
+                suplier b ON a.id_suplier = b.id
+            INNER JOIN 
+                pembelian_detail c ON a.id = c.id";
+        if($kd_brg) {
+            $sql .= " INNER JOIN barang_detail bd ON bd.barcode = c.barcode AND bd.barang_id = $kd_brg";
+        }
+        if ($awal==$akhir){
+            $sql.=" WHERE date(a.tanggal)='$awal'";
+        }else{
+            $sql.=" WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir'";
+        }
+        $sql.=" GROUP BY b.namasuplier, a.tanggal;";
+        return $this->db->query($sql)->getResult();
+    }
+
 }

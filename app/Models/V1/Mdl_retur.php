@@ -200,4 +200,41 @@ class Mdl_retur extends Model
         return $this->db->query($sql,$id)->getResult();
     }
 
+    public function get_laporan_retursup($bulan,$tahun, $suplier){
+        $sql="SELECT 
+            	a.id,
+                b.namasuplier, 
+                a.tanggal
+            FROM 
+                retur_beli a
+            INNER JOIN 
+                suplier b ON a.id_suplier = b.id
+            INNER JOIN 
+                retur_beli_detail c ON a.id = c.id";
+        $sql.=" WHERE
+                YEAR(a.tanggal) = $tahun AND MONTH(a.tanggal) = $bulan"
+                . (!empty($suplier) ? " AND b.id = $suplier " : "")
+                ." GROUP BY b.namasuplier, a.tanggal";
+        return $this->db->query($sql)->getResult();
+    }
+
+    public function get_laporan_returpel($bulan,$tahun, $pelanggan){
+        $sql="SELECT 
+            	a.id,
+                b.namapelanggan, 
+                a.tanggal
+            FROM 
+                retur_jual a
+            INNER JOIN 
+                pelanggan b ON a.pelanggan_id = b.id
+            INNER JOIN 
+                retur_jual_detail c ON a.id = c.id";
+        $sql.=" WHERE
+                YEAR(a.tanggal) = $tahun AND MONTH(a.tanggal) = $bulan"
+                . (!empty($pelanggan) ? " AND b.id = $pelanggan " : "")
+                ." GROUP BY b.namapelanggan, a.tanggal";
+
+        return $this->db->query($sql)->getResult();
+    }
+
 }

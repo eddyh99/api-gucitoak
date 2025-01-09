@@ -589,5 +589,70 @@ class Mdl_barang extends Model
             HAVING stok <= min;';
     $query=$this->db->query($sql);
     return $query->getResult();
-}    
+}
+
+// hr jugal dan beli belum fix
+public function get_laporan_barang() {
+    $sql = 'SELECT 
+            a.*, 
+            x.*, 
+            b.namakategori, 
+            pd.harga as harga_beli 
+        FROM 
+            barang a 
+        INNER JOIN 
+            kategori b 
+        ON 
+            a.id_kategori = b.id 
+        LEFT JOIN (
+            SELECT 
+                a.harga1, 
+                a.harga2, 
+                a.harga3, 
+                a.id_barang 
+            FROM 
+                harga a 
+            INNER JOIN (
+                SELECT 
+                    MAX(tanggal) as tanggal, 
+                    id_barang 
+                FROM 
+                    harga 
+                GROUP BY 
+                    id_barang
+            ) x 
+            ON 
+                a.id_barang = x.id_barang 
+                AND a.tanggal = x.tanggal
+        ) x 
+        ON 
+            a.id = x.id_barang 
+        INNER JOIN barang_detail bd ON bd.barang_id = a.id
+        INNER JOIN (
+                SELECT 
+                    pd.barcode, 
+                    pd.harga, 
+                    pd.id
+                FROM 
+                    pembelian_detail pd 
+                INNER JOIN (
+                    SELECT 
+                        p.id, 
+                        MAX(p.tanggal) as tanggal 
+                    FROM 
+                        pembelian p
+                    GROUP BY 
+                        id
+                ) latest 
+                ON 
+                    pd.id = latest.id
+            ) pd ON pd.barcode = bd.barcode
+        WHERE 
+            a.is_delete = "no"
+    ';
+
+    $query = $this->db->query($sql)->getResult();
+    return $query;
+}
+
 }
