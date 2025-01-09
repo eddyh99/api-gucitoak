@@ -207,8 +207,8 @@ class Mdl_barang extends Model
                     k.namakategori AS kategori,
                     b.stokmin AS min,
                     (
-                        COALESCE(SUM(pbd.total_pembelian), 0) + 
-                        COALESCE(SUM(rj.total_retur_jual), 0) + 
+                        COALESCE(SUM(DISTINCT pbd.total_pembelian), 0) + 
+                        COALESCE(SUM(DISTINCT rj.total_retur_jual), 0) + 
                         COALESCE(SUM(CASE WHEN adj.approved = 1 THEN adj.jumlah ELSE 0 END), 0)
                     )
                     - (
@@ -272,8 +272,8 @@ class Mdl_barang extends Model
                 bd.barcode,
                 bd.expired AS exp_date,
                 (
-                    COALESCE(SUM(pbd.total_pembelian), 0) + 
-                    COALESCE(SUM(rj.total_retur_jual), 0) + 
+                    COALESCE(SUM(DISTINCT pbd.total_pembelian), 0) + 
+                    COALESCE(SUM(DISTINCT rj.total_retur_jual), 0) + 
                     COALESCE(SUM(CASE WHEN adj.approved = 1 THEN adj.jumlah ELSE 0 END), 0)
                 )
                 - (
@@ -337,8 +337,8 @@ class Mdl_barang extends Model
                 k.namakategori AS kategori,
                 b.stokmin AS min,
                 (
-                    COALESCE(SUM(pbd.total_pembelian), 0) + 
-                    COALESCE(SUM(rj.total_retur_jual), 0) + 
+                    COALESCE(SUM(DISTINCT pbd.total_pembelian), 0) + 
+                    COALESCE(SUM(DISTINCT rj.total_retur_jual), 0) + 
                     COALESCE(SUM(CASE WHEN adj.approved = 1 THEN adj.jumlah ELSE 0 END), 0)
                 )
                 - (
@@ -530,8 +530,8 @@ class Mdl_barang extends Model
                 k.namakategori AS kategori,
                 b.stokmin AS min,
                 (
-                    COALESCE(SUM(pbd.total_pembelian), 0) + 
-                    COALESCE(SUM(rj.total_retur_jual), 0) + 
+                    COALESCE(SUM(DISTINCT pbd.total_pembelian), 0) + 
+                    COALESCE(SUM(DISTINCT rj.total_retur_jual), 0) + 
                     COALESCE(SUM(CASE WHEN adj.approved = 1 THEN adj.jumlah ELSE 0 END), 0)
                 )
                 - (
@@ -594,61 +594,98 @@ class Mdl_barang extends Model
 // hr jugal dan beli belum fix
 public function get_laporan_barang() {
     $sql = 'SELECT 
-            a.*, 
-            x.*, 
-            b.namakategori, 
-            pd.harga as harga_beli 
-        FROM 
-            barang a 
-        INNER JOIN 
-            kategori b 
-        ON 
-            a.id_kategori = b.id 
-        LEFT JOIN (
-            SELECT 
-                a.harga1, 
-                a.harga2, 
-                a.harga3, 
-                a.id_barang 
-            FROM 
-                harga a 
-            INNER JOIN (
-                SELECT 
-                    MAX(tanggal) as tanggal, 
-                    id_barang 
-                FROM 
-                    harga 
-                GROUP BY 
-                    id_barang
-            ) x 
-            ON 
-                a.id_barang = x.id_barang 
-                AND a.tanggal = x.tanggal
-        ) x 
-        ON 
-            a.id = x.id_barang 
-        INNER JOIN barang_detail bd ON bd.barang_id = a.id
-        INNER JOIN (
-                SELECT 
-                    pd.barcode, 
-                    pd.harga, 
-                    pd.id
-                FROM 
-                    pembelian_detail pd 
-                INNER JOIN (
-                    SELECT 
-                        p.id, 
-                        MAX(p.tanggal) as tanggal 
-                    FROM 
-                        pembelian p
-                    GROUP BY 
-                        id
-                ) latest 
-                ON 
-                    pd.id = latest.id
-            ) pd ON pd.barcode = bd.barcode
-        WHERE 
-            a.is_delete = "no"
+                b.id AS kodebrg,
+                b.namabarang AS nama_barang,
+                k.namakategori AS kategori,
+                hr.harga1,hr.harga2, hr.harga3,
+                b.stokmin AS min,
+                (
+                    COALESCE(SUM(DISTINCT pbd.total_pembelian), 0) +
+                    COALESCE(SUM(DISTINCT rj.total_retur_jual), 0) +
+                    COALESCE(SUM(CASE WHEN adj.approved = 1 THEN adj.jumlah ELSE 0 END), 0)
+                )-(
+                    COALESCE(SUM(DISTINCT rb.total_retur_beli), 0) + 
+                    COALESCE(SUM(DISTINCT pjd.total_penjualan), 0) + 
+                    COALESCE(SUM(DISTINCT dd.total_disposal), 0)
+                ) AS stok,
+                COALESCE(pjd.avg_penjualan, 0) AS avg_penjualan,
+                lp.harga_terbaru
+            FROM barang b
+                INNER JOIN (SELECT MAX(tanggal), harga1,harga2, harga3, id_barang FROM harga GROUP BY id_barang) hr ON b.id=hr.id_barang
+                INNER JOIN kategori k ON b.id_kategori = k.id
+                LEFT JOIN barang_detail bd ON b.id = bd.barang_id
+                
+                -- "In" part: Subquery for total pembelian
+                LEFT JOIN (
+                    SELECT barcode, SUM(jumlah) AS total_pembelian
+                    FROM pembelian_detail
+                    GROUP BY barcode
+                ) pbd ON bd.barcode = pbd.barcode
+                
+                -- "In" part: Subquery for total retur_jual
+                LEFT JOIN (
+                    SELECT barcode, SUM(jumlah) AS total_retur_jual
+                    FROM retur_jual a
+                    INNER JOIN retur_jual_detail b ON a.id = b.id
+                    GROUP BY barcode
+                ) rj ON bd.barcode = rj.barcode
+                
+                -- "In" part: Subquery for approved penyesuaian (adjustment)
+                LEFT JOIN penyesuaian adj ON bd.barcode = adj.barcode AND adj.approved = 1
+                
+                -- "Out" part: Subquery for total retur_beli (return purchases)
+                LEFT JOIN (
+                    SELECT DISTINCT barcode, SUM(jumlah) AS total_retur_beli
+                    FROM retur_beli a 
+                    INNER JOIN retur_beli_detail b ON a.id = b.id
+                    WHERE a.status = "tukar"
+                    GROUP BY barcode
+                ) rb ON bd.barcode = rb.barcode
+                
+                -- "Out" part: Subquery for total penjualan (sales)
+                LEFT JOIN (
+                    SELECT DISTINCT barcode, SUM(jumlah) AS total_penjualan,
+                    AVG(jumlah) AS avg_penjualan
+                    FROM penjualan_detail
+                    GROUP BY barcode
+                ) pjd ON bd.barcode = pjd.barcode
+                
+                -- "Out" part: Subquery for total disposal
+                LEFT JOIN (
+                    SELECT DISTINCT barcode, SUM(jumlah) AS total_disposal
+                    FROM disposal_detail
+                    GROUP BY barcode
+                ) dd ON bd.barcode = dd.barcode
+                -- Subquery for the latest harga from pembelian
+                LEFT JOIN (
+                    SELECT
+                        br.id AS id_barang,
+                        subquery.harga_terbaru
+                    FROM
+                        barang br
+                    INNER JOIN (
+                        SELECT
+                            bd.barang_id,
+                            pb.tanggal,
+                            pd.harga AS harga_terbaru
+                        FROM
+                            pembelian pb
+                        INNER JOIN pembelian_detail pd ON pb.id = pd.id
+                        INNER JOIN barang_detail bd ON pd.barcode = bd.barcode
+                        WHERE
+                            pd.harga IS NOT NULL
+                            AND pb.tanggal = (
+                                SELECT MAX(pb2.tanggal)
+                                FROM pembelian pb2
+                                INNER JOIN pembelian_detail pd2 ON pb2.id = pd2.id
+                                INNER JOIN barang_detail bd2 ON pd2.barcode = bd2.barcode
+                                WHERE bd2.barang_id = bd.barang_id
+                            )
+                    ) subquery ON br.id = subquery.barang_id
+                ) lp ON b.id = lp.id_barang
+            WHERE b.is_delete = "no"
+            GROUP BY b.id
+            HAVING stok <= min;;
     ';
 
     $query = $this->db->query($sql)->getResult();
