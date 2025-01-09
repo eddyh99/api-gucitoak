@@ -691,7 +691,7 @@ public function get_laporan_barang() {
     return $query;
 }
 
-public function get_mutasi_stok() {
+public function get_mutasi_stok($bulan, $tahun) {
     $sql = " SELECT
                 b.namabarang,
                 COALESCE(c.jumlah_awal, 0) AS awal, -- belum fix
@@ -711,18 +711,27 @@ public function get_mutasi_stok() {
                 ) AS sisa
             FROM
                 barang b
-            LEFT JOIN (
-                SELECT
-                    bd.barang_id,
-                    SUM(pd.jumlah) AS jumlah_awal, -- awal
-                    SUM(pd.jumlah) AS jumlah -- masuk
-                FROM
-                    barang_detail bd
-                INNER JOIN
-                    pembelian_detail pd ON pd.barcode = bd.barcode
-                GROUP BY
-                    bd.barang_id
-            ) c ON c.barang_id = b.id
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id,
+                        SUM(CASE 
+                            WHEN YEAR(p.tanggal) = $tahun AND MONTH(p.tanggal) = $bulan THEN pd.jumlah
+                            ELSE 0
+                        END) AS jumlah, -- jumlah untuk bulan ini
+                        SUM(CASE 
+                            WHEN (MONTH(p.tanggal) = CASE WHEN $bulan = 1 THEN 12 ELSE $bulan - 1 END)
+                                AND (YEAR(p.tanggal) = CASE WHEN $bulan = 1 THEN $tahun - 1 ELSE $tahun END) THEN pd.jumlah
+                            ELSE 0
+                        END) AS jumlah_awal -- jumlah untuk bulan sebelumnya
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        pembelian_detail pd ON pd.barcode = bd.barcode
+                    INNER JOIN
+                        pembelian p ON pd.id = p.id
+                    GROUP BY
+                        bd.barang_id
+                ) c ON c.barang_id = b.id
             LEFT JOIN (
                 SELECT
                     bd.barang_id, -- terjual
@@ -731,28 +740,40 @@ public function get_mutasi_stok() {
                     barang_detail bd
                 INNER JOIN
                     penjualan_detail jd ON jd.barcode = bd.barcode
+                INNER JOIN
+                    penjualan p ON jd.nonota = p.nonota
+                WHERE
+                    YEAR(p.tanggal) = $tahun AND MONTH(p.tanggal) = $bulan
                 GROUP BY
                     bd.barang_id
             ) d ON d.barang_id = b.id
             LEFT JOIN (
                 SELECT
                     bd.barang_id, -- retur by suplier
-                    SUM(rb.jumlah) AS jumlah
+                    SUM(rbd.jumlah) AS jumlah
                 FROM
                     barang_detail bd
                 INNER JOIN
-                    retur_beli_detail rb ON rb.barcode = bd.barcode
+                    retur_beli_detail rbd ON rbd.barcode = bd.barcode
+                INNER JOIN
+                    retur_beli rb ON rb.id = rbd.id
+                WHERE
+                    YEAR(rb.tanggal) = $tahun AND MONTH(rb.tanggal) = $bulan
                 GROUP BY
                     bd.barang_id
             ) e ON e.barang_id = b.id
             LEFT JOIN (
                 SELECT
                     bd.barang_id, -- retur by pelanggan
-                    SUM(rj.jumlah) AS jumlah
+                    SUM(rjd.jumlah) AS jumlah
                 FROM
                     barang_detail bd
                 INNER JOIN
-                    retur_jual_detail rj ON rj.barcode = bd.barcode
+                    retur_jual_detail rjd ON rjd.barcode = bd.barcode
+                INNER JOIN
+                    retur_jual rj ON rj.id = rjd.id
+                WHERE
+                    YEAR(rj.tanggal) = $tahun AND MONTH(rj.tanggal) = $bulan
                 GROUP BY
                     bd.barang_id
             ) f ON f.barang_id = b.id
@@ -765,7 +786,7 @@ public function get_mutasi_stok() {
                 INNER JOIN
                     penyesuaian p ON p.barcode = bd.barcode
                 WHERE
-                    p.approved = 1
+                    p.approved = 1 AND YEAR(p.tanggal) = $tahun AND MONTH(p.tanggal) = $bulan
                 GROUP BY
                     bd.barang_id
             ) g ON g.barang_id = b.id
@@ -777,6 +798,8 @@ public function get_mutasi_stok() {
                     barang_detail bd
                 INNER JOIN
                     disposal_detail dd ON dd.barcode = bd.barcode
+                WHERE
+                    YEAR(dd.tanggal) = $tahun AND MONTH(dd.tanggal) = $bulan
                 GROUP BY
                     bd.barang_id
             ) h ON h.barang_id = b.id
