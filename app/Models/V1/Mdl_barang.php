@@ -691,44 +691,38 @@ public function get_laporan_barang() {
     return $query;
 }
 
-public function get_mutasi_stok($bulan, $tahun) {
+public function get_mutasi_stok($bulan, $tahun) {    
     $sql = " SELECT
                 b.namabarang,
-                COALESCE(c.jumlah_awal, 0) AS awal, -- belum fix
+                (
+                    COALESCE(total.pembelian, 0)
+                    + COALESCE(total.retur_jual, 0)
+                    + COALESCE(total.penyesuaian, 0)
+                ) - (
+                    COALESCE(total.retur_beli, 0)
+                    + COALESCE(total.penjualan, 0) --
+                    + COALESCE(total.disposal, 0)
+                ) AS awal,
                 COALESCE(c.jumlah, 0) AS masuk,
                 COALESCE(d.jumlah, 0) AS terjual,
                 COALESCE(e.jumlah, 0) AS retursup,
                 COALESCE(f.jumlah, 0) AS returpel,
                 COALESCE(g.jumlah, 0) AS sesuai,
-                (
-                    COALESCE(c.jumlah_awal, 0) 
-                    + COALESCE(c.jumlah, 0) 
-                    + COALESCE(f.jumlah, 0) 
-                    + COALESCE(g.jumlah, 0) 
-                    - COALESCE(d.jumlah, 0) 
-                    - COALESCE(e.jumlah, 0) 
-                    - COALESCE(h.jumlah, 0)
-                ) AS sisa
+                0 AS sisa
             FROM
                 barang b
                 LEFT JOIN (
                     SELECT
                         bd.barang_id,
-                        SUM(CASE 
-                            WHEN YEAR(p.tanggal) = $tahun AND MONTH(p.tanggal) = $bulan THEN pd.jumlah
-                            ELSE 0
-                        END) AS jumlah, -- jumlah untuk bulan ini
-                        SUM(CASE 
-                            WHEN (MONTH(p.tanggal) = CASE WHEN $bulan = 1 THEN 12 ELSE $bulan - 1 END)
-                                AND (YEAR(p.tanggal) = CASE WHEN $bulan = 1 THEN $tahun - 1 ELSE $tahun END) THEN pd.jumlah
-                            ELSE 0
-                        END) AS jumlah_awal -- jumlah untuk bulan sebelumnya
+                        SUM(pd.jumlah) as jumlah
                     FROM
                         barang_detail bd
                     INNER JOIN
                         pembelian_detail pd ON pd.barcode = bd.barcode
                     INNER JOIN
                         pembelian p ON pd.id = p.id
+                    WHERE
+                        YEAR(p.tanggal) = $tahun AND MONTH(p.tanggal) = $bulan
                     GROUP BY
                         bd.barang_id
                 ) c ON c.barang_id = b.id
@@ -803,6 +797,113 @@ public function get_mutasi_stok($bulan, $tahun) {
                 GROUP BY
                     bd.barang_id
             ) h ON h.barang_id = b.id
+            LEFT JOIN (
+                SELECT
+                    b.id as id, 
+                    b.namabarang,
+                    c.jumlah AS pembelian,
+                    d.jumlah AS penjualan,
+                    e.jumlah AS retur_beli,
+                    f.jumlah AS retur_jual,
+                    g.jumlah AS penyesuaian,
+                    h.jumlah AS disposal
+                FROM
+                    barang b
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id,
+                        SUM(pd.jumlah) AS jumlah
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        pembelian_detail pd ON pd.barcode = bd.barcode
+                    INNER JOIN
+                        pembelian p ON pd.id = p.id
+                    WHERE
+                        p.tanggal < '$tahun-$bulan-01'
+                    GROUP BY
+                        bd.barang_id
+                ) c ON c.barang_id = b.id
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id, -- terjual
+                        SUM(jd.jumlah) AS jumlah
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        penjualan_detail jd ON jd.barcode = bd.barcode
+                    INNER JOIN
+                        penjualan p ON jd.nonota = p.nonota
+                    WHERE
+                        p.tanggal < '$tahun-$bulan-01'
+                    GROUP BY
+                        bd.barang_id
+                ) d ON d.barang_id = b.id
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id, -- retur by suplier
+                        SUM(rbd.jumlah) AS jumlah
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        retur_beli_detail rbd ON rbd.barcode = bd.barcode
+                    INNER JOIN
+                        retur_beli rb ON rb.id = rbd.id
+                    WHERE
+                        rb.status = 'tukar'
+                    AND
+                        rb.tanggal < '$tahun-$bulan-01'
+                    GROUP BY
+                        bd.barang_id
+                ) e ON e.barang_id = b.id
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id, -- retur by pelanggan
+                        SUM(rjd.jumlah) AS jumlah
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        retur_jual_detail rjd ON rjd.barcode = bd.barcode
+                    INNER JOIN
+                        retur_jual rj ON rj.id = rjd.id
+                    WHERE
+                        rj.tanggal < '$tahun-$bulan-01'
+                    GROUP BY
+                        bd.barang_id
+                ) f ON f.barang_id = b.id
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id, -- penyesuaian
+                        SUM(p.jumlah) AS jumlah
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        penyesuaian p ON p.barcode = bd.barcode
+                    WHERE
+                        p.approved = 1
+                    AND
+                        p.tanggal < '$tahun-$bulan-01'
+                    GROUP BY
+                        bd.barang_id
+                ) g ON g.barang_id = b.id
+                LEFT JOIN (
+                    SELECT
+                        bd.barang_id, -- disposal
+                        SUM(dd.jumlah) AS jumlah
+                    FROM
+                        barang_detail bd
+                    INNER JOIN
+                        disposal_detail dd ON dd.barcode = bd.barcode
+                    WHERE
+                        dd.tanggal < '$tahun-$bulan-01'
+                    GROUP BY
+                        bd.barang_id
+                ) h ON h.barang_id = b.id
+                WHERE
+                    b.is_delete = 'no'
+                GROUP BY
+                    b.id, b.namabarang
+            )total ON total.id = b.id
             WHERE
                 b.is_delete = 'no'
             GROUP BY -- grup berdasarkan id dan nama barang
