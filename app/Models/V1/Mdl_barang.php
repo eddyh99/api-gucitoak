@@ -708,7 +708,18 @@ public function get_mutasi_stok($bulan, $tahun) {
                 COALESCE(e.jumlah, 0) AS retursup,
                 COALESCE(f.jumlah, 0) AS returpel,
                 COALESCE(g.jumlah, 0) AS sesuai,
-                0 AS sisa
+                (
+                    (
+                        COALESCE(total.pembelian, 0)
+                        + COALESCE(total.retur_jual, 0)
+                        + COALESCE(total.penyesuaian, 0)
+                    ) - (
+                        COALESCE(total.retur_beli, 0)
+                        + COALESCE(total.penjualan, 0)
+                        + COALESCE(total.disposal, 0)
+                    )
+                ) + COALESCE(c.jumlah, 0) + COALESCE(f.jumlah, 0) + COALESCE(g.jumlah, 0) 
+                - COALESCE(d.jumlah, 0) - COALESCE(e.jumlah, 0) - COALESCE(h.jumlah, 0) AS sisa
             FROM
                 barang b
                 LEFT JOIN (
