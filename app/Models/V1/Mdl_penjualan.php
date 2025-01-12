@@ -207,4 +207,78 @@ class Mdl_penjualan extends Model
             return $this->db->query($sql)->getResult();
                 
     }
+
+    public function getNota_belumLunas($awal, $akhir)
+    {
+        $sql = "SELECT 
+                    a.nonota,
+                    b.namapelanggan, 
+                    a.tanggal,
+                    e.cicilan as cicilan
+                FROM 
+                    penjualan a
+                INNER JOIN 
+                    pelanggan b 
+                    ON a.pelanggan_id = b.id
+                INNER JOIN 
+                    penjualan_detail c 
+                    ON a.nonota = c.nonota
+                INNER JOIN 
+                    barang_detail d 
+                    ON c.barcode = d.barcode
+                -- LEFT JOIN
+                --     pembayaran e ON e.nonota = a.nonota
+                LEFT JOIN (
+                    SELECT
+                        p.nonota,
+                        SUM(pd.amount) as cicilan
+                        FROM pembayaran p
+                        INNER JOIN pembayaran_detail pd ON pd.bayar_id = p.id
+                        GROUP BY p.nonota
+                ) e ON e.nonota = a.nonota
+                LEFT JOIN (
+                    SELECT 
+                        hr.id_barang, 
+                        hr.harga1, 
+                        hr.harga2, 
+                        hr.harga3, 
+                        hr.tanggal
+                    FROM 
+                        harga hr
+                ) f 
+                    ON f.id_barang = d.barang_id 
+                    AND f.tanggal = (
+                        SELECT 
+                            MAX(hr2.tanggal)
+                        FROM 
+                            harga hr2
+                        WHERE 
+                            hr2.id_barang = f.id_barang 
+                            AND hr2.tanggal <= a.tanggal
+                    )";
+
+        if ($awal == $akhir) {
+            $sql .= " WHERE date(a.tanggal)='$awal'";
+        } else {
+            $sql .= " WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir'";
+        }
+
+        $sql .= " GROUP BY
+                    a.nonota, 
+                    a.tanggal
+                HAVING
+                    SUM(
+                        c.jumlah * (
+                            CASE 
+                                WHEN b.harga = 1 THEN f.harga1
+                                WHEN b.harga = 2 THEN f.harga2
+                                WHEN b.harga = 3 THEN f.harga3
+                                ELSE 0
+                            END
+                        )
+                    ) > COALESCE(cicilan, 0)
+                    ";
+
+        return $this->db->query($sql)->getResult();
+    }
 }
