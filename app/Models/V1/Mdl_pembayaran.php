@@ -20,6 +20,8 @@ class Mdl_pembayaran extends Model
                     p.tanggal,
                     pel.namapelanggan,
                     p.method,
+                    status.totalcicilan,
+                    status.notajual as notajual,
                     status.isLunas as isLunas
                 FROM 
                     pembayaran a
@@ -29,6 +31,15 @@ class Mdl_pembayaran extends Model
                     pelanggan pel ON pel.id = p.pelanggan_id
                 LEFT JOIN (
                     SELECT
+                    p2.cicilan as totalcicilan,
+                    SUM(pd.jumlah * (
+                    CASE 
+                        WHEN pel.harga = 1 THEN h.harga1
+                        WHEN pel.harga = 2 THEN h.harga2
+                        WHEN pel.harga = 3 THEN h.harga3
+                        ELSE 0
+                    END
+                    )) AS notajual,
                     pd.nonota,
                     CASE 
                         WHEN COALESCE(p2.cicilan, 0) < SUM(
