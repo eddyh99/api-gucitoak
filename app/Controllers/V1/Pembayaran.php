@@ -23,4 +23,33 @@ class Pembayaran extends BaseController
         $result = $this->penjualan->getNota_belumLunas($awal, $akhir);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
+
+    public function cekNota_pelanggan() {
+        $nota = $this->request->getGet('nota');
+        $result = $this->pembayaran->getNota_pelanggan($nota);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
+    public function getCicilan_pelanggan() {
+        $nota = $this->request->getGet('nota');
+        $result = $this->pembayaran->getCicilan_pelanggan($nota);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
+    public function inputCicilan_pelanggan() {
+        // add validasi input
+
+        $data           = $this->request->getJSON();
+        $mdata = array(
+            'nonota'        => $data->nonota,
+            'tanggal'       => date("Y-m-d"),
+            'amount'        => $data->amount
+        );
+        $result = $this->pembayaran->addCicilan_pelanggan($mdata);
+        if (@$result->code!=201){
+            return $this->respond(error_msg(400,"penjualan","01",$mdata),400);
+	    }
+
+        return $this->respond(error_msg(200,"penjualan",null,'Berhasil menambahkan cicilan.'),200);
+    }
 }
