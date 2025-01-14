@@ -20,7 +20,7 @@ class Pembayaran extends BaseController
         $awal   = $this->request->getGet('awal');
         $akhir  = $this->request->getGet('akhir');
 
-        $result = $this->penjualan->getNota_belumLunas($awal, $akhir);
+        $result = $this->penjualan->getNota_belumLunas($awal, $akhir, 'pelanggan');
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 
@@ -51,5 +51,25 @@ class Pembayaran extends BaseController
 	    }
 
         return $this->respond(error_msg(200,"penjualan",null,'Berhasil menambahkan cicilan.'),200);
+    }
+
+    public function suplier() {
+        $awal   = $this->request->getGet('awal');
+        $akhir  = $this->request->getGet('akhir');
+
+        $result = $this->penjualan->getNota_belumLunas($awal, $akhir, 'suplier');
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
+    public function cekNota_suplier() {
+        $nota = $this->request->getGet('nota');
+        $result = $this->pembayaran->getNota_suplier($nota);
+        return $this->respond(error_msg(200,"pembelian",null,$result),200);
+    }
+
+    public function getCicilan_suplier() {
+        $nota = $this->request->getGet('nota');
+        $result = $this->pembayaran->getCicilan_suplier($nota);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 }

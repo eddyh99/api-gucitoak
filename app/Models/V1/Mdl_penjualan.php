@@ -208,9 +208,10 @@ class Mdl_penjualan extends Model
                 
     }
 
-    public function getNota_belumLunas($awal, $akhir)
+    public function getNota_belumLunas($awal, $akhir, $nota)
     {
-        $sql = "SELECT 
+        // get nota pelanggan belum lunas
+        $sql_pel = "SELECT 
                     a.nonota,
                     b.namapelanggan, 
                     a.tanggal,
@@ -258,12 +259,12 @@ class Mdl_penjualan extends Model
                     )";
 
         if ($awal == $akhir) {
-            $sql .= " WHERE date(a.tanggal)='$awal'";
+            $sql_pel .= " WHERE date(a.tanggal)='$awal'";
         } else {
-            $sql .= " WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir'";
+            $sql_pel .= " WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir'";
         }
 
-        $sql .= " GROUP BY
+        $sql_pel .= " GROUP BY
                     a.nonota, 
                     a.tanggal
                 HAVING
@@ -278,6 +279,42 @@ class Mdl_penjualan extends Model
                         )
                     ) > COALESCE(cicilan, 0)
                     ";
+
+        // get nota suplier belum lunas
+        $sql_sup = "SELECT
+                        a.nonota,
+                        b.namasuplier,
+                        a.tanggal,
+                        COALESCE(c.cicilan, 0) as cicilan,
+                        COALESCE(d.notabeli, 0) as notabeli
+                    FROM
+                        pembelian a
+                        INNER JOIN suplier b ON b.id = a.id_suplier
+                        LEFT JOIN (
+                        SELECT
+                            id_nota,
+                            SUM(csd.amount) as cicilan
+                        FROM
+                            cicilansuplier cs
+                            INNER JOIN cicilansuplier_detail csd ON csd.cicilan_id = cs.id
+                        GROUP BY
+                            cs.id_nota
+                        ) c ON c.id_nota = a.id
+                        LEFT JOIN (
+                        SELECT
+                            id,
+                            harga * jumlah as notabeli
+                        FROM
+                            pembelian_detail
+                        ) d ON d.id = a.id";
+
+        if ($awal == $akhir) {
+            $sql_sup .= " WHERE date(a.tanggal)='$awal' HAVING cicilan < notabeli";
+        } else {
+            $sql_sup .= " WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir' HAVING cicilan < notabeli";
+        }
+
+        $sql = $nota === 'suplier' ? $sql_sup : $sql_pel;
 
         return $this->db->query($sql)->getResult();
     }

@@ -164,4 +164,58 @@ class Mdl_pembayaran extends Model
             ];
         }
     }
+
+    public function getNota_suplier($nota) {
+        $sql = "SELECT
+                    c.nonota,
+                    c.tanggal,
+                    c.method,
+                    e.namasuplier,
+                    b.cicilan as totalcicilan,
+                    d.notabeli,
+                    CASE
+                    WHEN b.cicilan < d.notabeli THEN FALSE
+                    ELSE TRUE
+                    END AS isLunas
+                FROM
+                    cicilansuplier a
+                    INNER JOIN (
+                    SELECT
+                        csd.cicilan_id,
+                        SUM(amount) as cicilan
+                    FROM
+                        cicilansuplier_detail csd
+                        INNER JOIN cicilansuplier cs ON cs.id = csd.cicilan_id
+                    GROUP BY
+                        cs.id_nota
+                    ) b ON b.cicilan_id = a.id
+                    INNER JOIN pembelian c ON c.id = a.id_nota
+                    INNER JOIN (
+                    SELECT
+                        id,
+                        jumlah * harga as notabeli
+                    FROM
+                        pembelian_detail
+                    ) d on d.id = c.id
+                    INNER JOIN suplier e ON e.id = c.id_suplier
+                WHERE
+                    c.nonota = ?";
+
+        return $this->db->query($sql, $nota)->getRow();
+    }
+
+    public function getCicilan_suplier($nota) {
+        $sql = "SELECT
+                    a.nonota,
+                    c.tanggal,
+                    c.amount,
+                    c.keterangan
+                FROM
+                    pembelian a
+                    INNER JOIN cicilansuplier b ON b.id_nota = a.id
+                    INNER JOIN cicilansuplier_detail c ON c.cicilan_id = b.id
+
+                WHERE a.nonota = ? ";
+        return $this->db->query($sql,$nota)->getResult();
+    }
 }
