@@ -43,7 +43,8 @@ class Pembayaran extends BaseController
         $mdata = array(
             'nonota'        => $data->nonota,
             'tanggal'       => date("Y-m-d"),
-            'amount'        => $data->amount
+            'amount'        => $data->amount,
+            'keterangan'    => $data->keterangan
         );
         $result = $this->pembayaran->addCicilan_pelanggan($mdata);
         if (@$result->code!=201){
@@ -71,5 +72,23 @@ class Pembayaran extends BaseController
         $nota = $this->request->getGet('nota');
         $result = $this->pembayaran->getCicilan_suplier($nota);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
+    public function inputCicilan_suplier() {
+        // add validasi input
+
+        $data           = $this->request->getJSON();
+        $mdata = array(
+            'id_nota'        => $data->id_nota,
+            'tanggal'       => date("Y-m-d"),
+            'amount'        => $data->amount,
+            'keterangan'    => $data->keterangan
+        );
+        $result = $this->pembayaran->addCicilan_suplier($mdata);
+        if (@$result->code!=201){
+            return $this->respond(error_msg(400,"pembayaran","01",$mdata),400);
+	    }
+
+        return $this->respond(error_msg(200,"pembayaran",null,'Berhasil menambahkan cicilan.'),200);
     }
 }

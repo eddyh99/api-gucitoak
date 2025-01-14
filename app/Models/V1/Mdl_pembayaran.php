@@ -103,7 +103,8 @@ class Mdl_pembayaran extends Model
         $sql = "SELECT
                     p.nonota,
                     pd.tanggal,
-                    pd.amount
+                    pd.amount,
+                    pd.keterangan
                 FROM
                     pembayaran p
                     INNER JOIN pembayaran_detail pd ON pd.bayar_id = p.id
@@ -167,6 +168,7 @@ class Mdl_pembayaran extends Model
 
     public function getNota_suplier($nota) {
         $sql = "SELECT
+                    c.id,
                     c.nonota,
                     c.tanggal,
                     c.method,
@@ -217,5 +219,57 @@ class Mdl_pembayaran extends Model
 
                 WHERE a.nonota = ? ";
         return $this->db->query($sql,$nota)->getResult();
+    }
+
+    public function addCicilan_suplier($mdata) {
+        try {
+            // Start Transaction
+            $this->db->transBegin();
+        
+            // Table initialization
+            $cicilan = $this->db->table("cicilansuplier");
+            $cicilan_detail = $this->db->table("cicilansuplier_detail");
+        
+            // Insert into 'penjualan'
+            if (!$cicilan->insert([
+                'id_nota' => $mdata['id_nota']])) {
+                // Rollback if 'penjualan' insertion fails
+                $this->db->transRollback();
+                return (object) [
+                    "code"    => 500,
+                    "message" => "Gagal menyimpan cicilan."
+                ];
+            }
+            
+            $mdata['cicilan_id'] = $this->db->insertID();
+            unset($mdata['id_nota']);
+            // InsertBatch into 'penjualan_detail'
+            if (!$cicilan_detail->insert($mdata)) {
+                // Rollback if 'penjualan_detail' insertion fails
+                $error = $this->db->error(); 
+                $this->db->transRollback();
+                return (object) [
+                    "code"    => 500,
+                    "message" => "Gagal menyimpan detail cicilan"
+                ];
+            }
+        
+            // Commit the transaction
+            $this->db->transCommit();
+        
+            return (object) [
+                "code"    => 201,
+                "message" => "Cicilan berhasil ditambahkan"
+            ];
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of an exception
+            $this->db->transRollback();
+        
+            // Handle exception
+            return (object) [
+                "code"    => 500,
+                "message" => "Terjadi kesalahan pada server: " . $e->getMessage()
+            ];
+        }
     }
 }
