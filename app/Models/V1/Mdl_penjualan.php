@@ -287,6 +287,7 @@ class Mdl_penjualan extends Model
                         a.nonota,
                         b.namasuplier,
                         a.tanggal,
+                        DATE_ADD(a.tanggal, INTERVAL a.waktu DAY) AS tempo,
                         COALESCE(c.cicilan, 0) as cicilan,
                         COALESCE(d.notabeli, 0) as notabeli
                     FROM
@@ -310,11 +311,12 @@ class Mdl_penjualan extends Model
                             pembelian_detail
                         ) d ON d.id = a.id";
 
-        if ($awal == $akhir) {
-            $sql_sup .= " WHERE date(a.tanggal)='$awal' HAVING cicilan < notabeli";
-        } else {
-            $sql_sup .= " WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir' HAVING cicilan < notabeli";
+        if (!empty($awal) && !empty($akhir)) {
+            $sql_pel .= ($awal == $akhir) 
+                ? " WHERE DATE(a.tanggal) = '$awal'" 
+                : " WHERE DATE(a.tanggal) BETWEEN '$awal' AND '$akhir'";
         }
+        $sql_sup.=" HAVING cicilan < notabeli";
 
         $sql = $nota === 'suplier' ? $sql_sup : $sql_pel;
 
