@@ -215,7 +215,18 @@ class Mdl_penjualan extends Model
                     a.nonota,
                     b.namapelanggan, 
                     a.tanggal,
-                    e.cicilan as cicilan
+                    DATE_ADD(a.tanggal, INTERVAL a.waktu DAY) AS tempo,
+                    COALESCE(e.cicilan, 0) as cicilan,
+                    SUM(
+                        c.jumlah * (
+                            CASE 
+                                WHEN b.harga = 1 THEN f.harga1
+                                WHEN b.harga = 2 THEN f.harga2
+                                WHEN b.harga = 3 THEN f.harga3
+                                ELSE 0
+                            END
+                        )
+                    ) as notajual
                 FROM 
                     penjualan a
                 INNER JOIN 
@@ -258,26 +269,17 @@ class Mdl_penjualan extends Model
                             AND hr2.tanggal <= a.tanggal
                     )";
 
-        if ($awal == $akhir) {
-            $sql_pel .= " WHERE date(a.tanggal)='$awal'";
-        } else {
-            $sql_pel .= " WHERE date(a.tanggal) BETWEEN '$awal' AND '$akhir'";
+        if (!empty($awal) && !empty($akhir)) {
+            $sql_pel .= ($awal == $akhir) 
+                ? " WHERE DATE(a.tanggal) = '$awal'" 
+                : " WHERE DATE(a.tanggal) BETWEEN '$awal' AND '$akhir'";
         }
 
         $sql_pel .= " GROUP BY
                     a.nonota, 
                     a.tanggal
                 HAVING
-                    SUM(
-                        c.jumlah * (
-                            CASE 
-                                WHEN b.harga = 1 THEN f.harga1
-                                WHEN b.harga = 2 THEN f.harga2
-                                WHEN b.harga = 3 THEN f.harga3
-                                ELSE 0
-                            END
-                        )
-                    ) > COALESCE(cicilan, 0)
+                    notajual > cicilan
                     ";
 
         // get nota suplier belum lunas

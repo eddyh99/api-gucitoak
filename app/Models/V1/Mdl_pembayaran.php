@@ -20,7 +20,7 @@ class Mdl_pembayaran extends Model
                     p.tanggal,
                     pel.namapelanggan,
                     p.method,
-                    status.totalcicilan,
+                    COALESCE(status.totalcicilan, 0) as totalcicilan,
                     status.notajual as notajual,
                     status.isLunas as isLunas
                 FROM 
