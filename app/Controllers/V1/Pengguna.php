@@ -132,4 +132,18 @@ class Pengguna extends BaseController
         return $this->respond(error_msg(200,"pengguna",null,"Sukses menghapus pengguna"),200);
 
     }
+
+    public function hak_akses() {
+        $data           = $this->request->getJSON();
+        $mdata = array(
+            'pengguna_id' => $data->pengguna_id,
+            'akses' => $data->akses
+        );
+        $result = $this->pengguna->giveAkses($mdata);
+        if (@$result->code!=201){
+            return $this->respond(error_msg(400,"pengguna","01",$mdata),400);
+	    }
+
+        return $this->respond(error_msg(200,"pengguna",null,'Berhasil.'),200);
+    }
 }

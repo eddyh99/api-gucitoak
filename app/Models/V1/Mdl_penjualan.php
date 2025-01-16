@@ -312,7 +312,7 @@ class Mdl_penjualan extends Model
                         ) d ON d.id = a.id";
 
         if (!empty($awal) && !empty($akhir)) {
-            $sql_pel .= ($awal == $akhir) 
+            $sql_sup .= ($awal == $akhir) 
                 ? " WHERE DATE(a.tanggal) = '$awal'" 
                 : " WHERE DATE(a.tanggal) BETWEEN '$awal' AND '$akhir'";
         }

@@ -121,4 +121,36 @@ class Mdl_pengguna extends Model
             "message"   => "pengguna berhasil dihapus"
         );
     }
+
+    public function giveAkses($mdata) {
+        try {
+            $akses = $this->db->table("user_role");
+
+            // Insert akses into 'user_role' table
+            if (!$akses->insert($mdata)) {
+                // Handle case when insert fails (not due to exception)
+                return (object) array(
+                    "code"      => 400,
+                    "message"   => "Gagal menyimpan"
+                );
+            }
+        } catch (DatabaseException $e) {
+            // For other database-related errors, return generic server error
+            return (object) array(
+                "code"      => 500,
+                "message"   => "Terjadi kesalahan pada server"
+            );
+        } catch (\Exception $e) {
+            // Handle any other general exceptions
+            return (object) array(
+                "code"      => 500,
+                "message"   => "Terjadi kesalahan pada server"
+            );
+        }
+
+        return (object) array(
+            "code"      => 201,
+            "message"   => "Akses pengguna berhasil ditambahkan."
+        );
+    }
 }
