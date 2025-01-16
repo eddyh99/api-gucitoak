@@ -13,6 +13,7 @@ class Auth extends BaseController
     {   
         $this->member  = model('App\Models\V1\Mdl_member');
         $this->subscription  = model('App\Models\V1\Mdl_subscription');
+		$this->pengguna       = model('App\Models\V1\Mdl_pengguna');
 	}
 	
 
@@ -106,6 +107,7 @@ class Auth extends BaseController
 
         if ($data->password == $member->message->passwd) {
         	    $response=$member->message;
+				$response->akses = $this->pengguna->getAkses($response->id);
                 return $this->respond(error_msg(200,"auth","02",$response),200);
         }else{
                 $response= "Invalid username or password";

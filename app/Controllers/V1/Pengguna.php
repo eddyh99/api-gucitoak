@@ -137,7 +137,7 @@ class Pengguna extends BaseController
         $data           = $this->request->getJSON();
         $mdata = array(
             'pengguna_id' => $data->pengguna_id,
-            'akses' => $data->akses
+            'akses' => json_encode($data->akses)
         );
         $result = $this->pengguna->giveAkses($mdata);
         if (@$result->code!=201){

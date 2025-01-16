@@ -122,6 +122,11 @@ class Mdl_pengguna extends Model
         );
     }
 
+    public function getAkses($id) {
+        $sql = "SELECT akses FROM user_role WHERE pengguna_id = ?";
+        return $this->db->query($sql, $id)->getRow()->akses ?? null;
+    }
+
     public function giveAkses($mdata) {
         try {
             $akses = $this->db->table("user_role");
