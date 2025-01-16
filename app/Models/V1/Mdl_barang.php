@@ -764,6 +764,8 @@ public function get_mutasi_stok($bulan, $tahun) {
                     retur_beli rb ON rb.id = rbd.id
                 WHERE
                     YEAR(rb.tanggal) = $tahun AND MONTH(rb.tanggal) = $bulan
+                AND
+                    rb.status = 'tukar'
                 GROUP BY
                     bd.barang_id
             ) e ON e.barang_id = b.id
