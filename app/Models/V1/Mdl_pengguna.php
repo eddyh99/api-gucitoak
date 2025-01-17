@@ -122,17 +122,35 @@ class Mdl_pengguna extends Model
         );
     }
 
-    public function getAkses($id) {
+    public function getAkses_users() {
+        $sql = "SELECT
+                    pengguna.id,
+                    pengguna.role,
+                    username,
+                    akses
+                FROM
+                    pengguna
+                    LEFT JOIN user_role ON user_role.pengguna_id = pengguna.id
+                WHERE
+                    pengguna.status = 'active'";
+        return $this->db->query($sql)->getResult() ?? null;
+    }
+
+    public function getAkses_byId($id) {
         $sql = "SELECT akses FROM user_role WHERE pengguna_id = ?";
         return $this->db->query($sql, $id)->getRow()->akses ?? null;
     }
 
     public function giveAkses($mdata) {
         try {
-            $akses = $this->db->table("user_role");
+            $sql = "INSERT INTO user_role (pengguna_id, akses)
+                    VALUES (?, ?)
+                    ON DUPLICATE KEY UPDATE
+                    akses = VALUES(akses);
+                    ";
 
             // Insert akses into 'user_role' table
-            if (!$akses->insert($mdata)) {
+            if (!$this->db->query($sql, [$mdata['pengguna_id'], $mdata['akses']])) {
                 // Handle case when insert fails (not due to exception)
                 return (object) array(
                     "code"      => 400,
@@ -143,13 +161,13 @@ class Mdl_pengguna extends Model
             // For other database-related errors, return generic server error
             return (object) array(
                 "code"      => 500,
-                "message"   => "Terjadi kesalahan pada server"
+                "message"   => "Terjadi kesalahan pada server $e"
             );
         } catch (\Exception $e) {
             // Handle any other general exceptions
             return (object) array(
                 "code"      => 500,
-                "message"   => "Terjadi kesalahan pada server"
+                "message"   => "Terjadi kesalahan pada server $e"
             );
         }
 

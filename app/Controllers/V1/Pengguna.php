@@ -141,9 +141,14 @@ class Pengguna extends BaseController
         );
         $result = $this->pengguna->giveAkses($mdata);
         if (@$result->code!=201){
-            return $this->respond(error_msg(400,"pengguna","01",$mdata),400);
+            return $this->respond(error_msg(400,"pengguna","01",$result->message),400);
 	    }
 
         return $this->respond(error_msg(200,"pengguna",null,'Berhasil.'),200);
+    }
+
+    public function getAkses_pengguna(){
+        $result = $this->pengguna->getAkses_users();
+        return $this->respond(error_msg(200,"pengguna",null,$result),200);
     }
 }

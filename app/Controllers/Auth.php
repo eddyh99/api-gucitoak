@@ -107,7 +107,7 @@ class Auth extends BaseController
 
         if ($data->password == $member->message->passwd) {
         	    $response=$member->message;
-				$response->akses = $this->pengguna->getAkses($response->id);
+				$response->akses = $this->pengguna->getAkses_byId($response->id);
                 return $this->respond(error_msg(200,"auth","02",$response),200);
         }else{
                 $response= "Invalid username or password";
