@@ -322,4 +322,22 @@ class Mdl_penjualan extends Model
 
         return $this->db->query($sql)->getResult();
     }
+
+    public function get_omzet_pelanggan($bulan, $id) {
+        $bulan_penjualan = implode(",\n", array_map(fn($b) => 
+            "SUM(CASE WHEN DATE_FORMAT(p.tanggal, '%Y-%m') = '$b' THEN pd.jumlah ELSE 0 END) AS '" . date('M-Y', strtotime($b)) . "'", 
+            $bulan
+        ));
+
+        $sql = "SELECT
+                    $bulan_penjualan
+                FROM
+                    pelanggan pel
+                    INNER JOIN penjualan p ON p.pelanggan_id = pel.id
+                    INNER JOIN penjualan_detail pd ON pd.nonota = p.nonota
+                WHERE pel.id = ?
+                GROUP BY
+                    pel.id";
+        return $this->db->query($sql, $id)->getRow();
+    }
 }

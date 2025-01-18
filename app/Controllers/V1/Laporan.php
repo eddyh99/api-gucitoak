@@ -4,6 +4,8 @@ namespace App\Controllers\V1;
 
 use App\Controllers\BaseController;
 use CodeIgniter\API\ResponseTrait;
+use DateTime;
+use Google\Service\CloudSearch\Id;
 
 class Laporan extends BaseController
 {
@@ -65,6 +67,20 @@ class Laporan extends BaseController
         $pelanggan  = $this->request->getGet('pelanggan');
 
         $result = $this->retur->get_laporan_returpel($bulan, $tahun, $pelanggan);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
+    public function omzet_pelanggan() {
+        $id = $this->request->getGet('id');
+        $date = new DateTime(date('Y-m'));
+        $bulan[] = $date->format('Y-m');
+        
+        // Menghitung bulan dari bulan saat ini hingga 12 bulan sebelumnya
+        for ($i = 1; $i <= 12; $i++) {
+            $bulan[] = $date->modify("-1 month")->format('Y-m');
+        }
+        
+        $result = $this->penjualan->get_omzet_pelanggan(array_reverse($bulan), $id);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 }
