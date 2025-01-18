@@ -340,4 +340,24 @@ class Mdl_penjualan extends Model
                     pel.id";
         return $this->db->query($sql, $id)->getRow();
     }
+
+    public function getOutlet_idle() {
+        $sql = "SELECT
+                    pelanggan.namapelanggan,
+                    CONCAT(pelanggan.alamat, ', ', pelanggan.kota) AS alamat,
+                    pelanggan.telp,
+                    MAX(penjualan.tanggal) AS lastorder
+                FROM
+                    pelanggan
+                    LEFT JOIN penjualan ON penjualan.pelanggan_id = pelanggan.id
+                GROUP BY
+                    pelanggan.id
+                HAVING
+                    (
+                    MAX(penjualan.tanggal) IS NULL
+                    OR MAX(penjualan.tanggal) < DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+                    )";
+
+        return $this->db->query($sql)->getResult();
+    }
 }

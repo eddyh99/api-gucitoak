@@ -83,4 +83,9 @@ class Laporan extends BaseController
         $result = $this->penjualan->get_omzet_pelanggan(array_reverse($bulan), $id);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
+
+    public function outlet_idle() {
+        $result = $this->penjualan->getOutlet_idle();
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
 }
