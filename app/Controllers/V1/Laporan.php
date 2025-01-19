@@ -88,4 +88,10 @@ class Laporan extends BaseController
         $result = $this->penjualan->getOutlet_idle();
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
+
+    public function penjualan_outlet() {
+        $id = $this->request->getGet('id');
+        $result = $this->penjualan->get_penjualan_outlet($id);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
 }
