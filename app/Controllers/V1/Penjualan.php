@@ -81,6 +81,10 @@ class Penjualan extends BaseController
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
 
     }
-    
 
+    public function set_statusBarang() {
+        $nonota = $this->request->getGet('nonota');
+        $result = $this->penjualan->terimaBarang($nonota);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
 }

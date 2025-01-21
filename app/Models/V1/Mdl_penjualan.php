@@ -27,6 +27,7 @@ class Mdl_penjualan extends Model
                         ELSE 0
                     END
                 )) AS amount,
+                a.is_terima,
                 a.method
             FROM 
                 penjualan a
@@ -387,5 +388,28 @@ class Mdl_penjualan extends Model
                 GROUP BY
                     a.id, a.namabarang";
         return $this->db->query($sql, $id)->getResult();
+    }
+
+    public function terimaBarang($nonota) {
+        $sql = "UPDATE penjualan SET is_terima = 1 WHERE nonota = ?";
+    
+        try {
+            if (!$this->db->query($sql, $nonota)) {
+                return (object) [
+                    "code"    => 500,
+                    "message" => "Gagal mengupdate status barang"
+                ];
+            }
+            return (object) [
+                "code"    => 200, // Status code 200 untuk OK
+                "message" => "Status barang berhasil diperbarui"
+            ];
+        } catch (\Throwable $th) {
+            // Menangani pengecualian
+            return (object) [
+                "code"    => 500,
+                "message" => "Terjadi kesalahan pada server: " . $th->getMessage() // Menggunakan $th
+            ];
+        }
     }
 }
