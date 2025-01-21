@@ -927,7 +927,7 @@ public function get_mutasi_stok($bulan, $tahun) {
 public function get_katalog($kategori) {
     $sql = "SELECT
                 a.foto,
-                c.barcode, -- hapus 6 digit terakhir
+                SUBSTRING(c.barcode, 1, CHAR_LENGTH(c.barcode) - 6) as barcode,
                 a.namabarang,
                 b.namakategori, -- harga terbaru
                 d.harga1
