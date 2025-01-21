@@ -94,4 +94,11 @@ class Laporan extends BaseController
         $result = $this->penjualan->get_penjualan_outlet($id);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
+
+    public function get_katalog() {
+        $kategori = $this->request->getGet('id');
+        $result = $this->barang->get_katalog($kategori);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
 }

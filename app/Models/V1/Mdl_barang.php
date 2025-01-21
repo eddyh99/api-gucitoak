@@ -924,4 +924,24 @@ public function get_mutasi_stok($bulan, $tahun) {
     return $this->db->query($sql)->getResult();
 }
 
+public function get_katalog($kategori) {
+    $sql = "SELECT
+                a.foto,
+                c.barcode, -- hapus 6 digit terakhir
+                a.namabarang,
+                b.namakategori, -- harga terbaru
+                d.harga1
+            FROM
+                barang a
+                INNER JOIN kategori b ON b.id = a.id_kategori
+                INNER JOIN barang_detail c ON c.barang_id = a.id
+                INNER JOIN harga d ON d.id_barang = a.id
+            WHERE
+                a.is_delete = 'no'
+                AND b.id = ?
+            GROUP BY
+                a.id";
+    return $this->db->query($sql, $kategori)->getResult();
+}
+
 }
