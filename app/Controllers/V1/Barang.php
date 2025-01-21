@@ -61,6 +61,7 @@ class Barang extends BaseController
 	    
 
         $mdata = array(
+            'foto'       => htmlspecialchars($data->foto),
             'namabarang' => htmlspecialchars($data->namabarang), 
             'id_kategori' => htmlspecialchars($data->idkategori), 
             'id_satuan'   => htmlspecialchars($data->idsatuan), 
@@ -122,6 +123,10 @@ class Barang extends BaseController
             'stokmin'    => filter_var($data->stokmin,FILTER_SANITIZE_NUMBER_INT), 
     	    "update_at"  => date("Y-m-d H:i:s")
         );
+
+        if ($data->foto) {
+            $mdata['foto'] = htmlspecialchars($data->foto); // Tambahkan foto baru ke array
+        }
         
         $harga = array(
                 "id_barang" => $id,
