@@ -160,5 +160,11 @@ class Sales extends BaseController
         return $this->respond(error_msg(200,"sales",null,$result),200);
 
     }
+
+    public function getreport_sales(){
+        $id = $this->request->getGet('id');
+        $result = $this->sales->get_sales_report($id);
+        return $this->respond(error_msg(200,"sales",null,$result),200);
+    }
     
 }

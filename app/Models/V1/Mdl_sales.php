@@ -142,4 +142,19 @@ class Mdl_sales extends Model
         $query = $this->db->query($sql)->getResult();
         return $query;
     }
+
+    public function get_sales_report($id) {
+        $sql = "SELECT
+                    a.namasales,
+                    a.komisi, -- belum fix
+                    a.gajipokok,
+                    '000002, 000003' as detailnota -- belum fix
+                FROM
+                    sales a
+                WHERE
+                    a.is_delete = 'no'
+                    AND a.id = ?";
+
+        return $this->db->query($sql, $id)->getRow();
+    }
 }
