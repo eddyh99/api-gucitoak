@@ -91,7 +91,8 @@ class Laporan extends BaseController
 
     public function penjualan_outlet() {
         $id = $this->request->getGet('id');
-        $result = $this->penjualan->get_penjualan_outlet($id);
+        $tahun = $this->request->getGet('tahun');
+        $result = $this->penjualan->get_penjualan_outlet($id, $tahun);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 

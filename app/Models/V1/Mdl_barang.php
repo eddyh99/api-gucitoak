@@ -927,15 +927,31 @@ public function get_mutasi_stok($bulan, $tahun) {
 public function get_katalog($kategori) {
     $sql = "SELECT
                 a.foto,
-                SUBSTRING(c.barcode, 1, CHAR_LENGTH(c.barcode) - 6) as barcode,
+                SUBSTRING(c.barcode, 1, CHAR_LENGTH(c.barcode) - 6) AS barcode,
                 a.namabarang,
-                b.namakategori, -- harga terbaru
+                b.namakategori,
                 d.harga1
             FROM
                 barang a
                 INNER JOIN kategori b ON b.id = a.id_kategori
                 INNER JOIN barang_detail c ON c.barang_id = a.id
-                INNER JOIN harga d ON d.id_barang = a.id
+                INNER JOIN (
+                SELECT
+                    h1.id_barang,
+                    h1.harga1,
+                    h1.tanggal
+                FROM
+                    harga h1
+                WHERE
+                    h1.tanggal = (
+                    SELECT
+                        MAX(h2.tanggal)
+                    FROM
+                        harga h2
+                    WHERE
+                        h2.id_barang = h1.id_barang
+                    )
+                ) d ON d.id_barang = a.id
             WHERE
                 a.is_delete = 'no'
                 AND b.id = ?

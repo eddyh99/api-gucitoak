@@ -362,21 +362,21 @@ class Mdl_penjualan extends Model
         return $this->db->query($sql)->getResult();
     }
 
-    public function get_penjualan_outlet($id) {
+    public function get_penjualan_outlet($id, $tahun) {
         $sql = "SELECT
                     a.namabarang,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 1 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS jan,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 2 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS feb,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 3 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS mar,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 4 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS apr,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 5 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS mei,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 6 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS jun,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 7 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS jul,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 8 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS aug,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 9 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS sep,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 10 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS okt,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 11 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS nov,
-                    SUM(CASE WHEN MONTH(d.tanggal) = 12 AND YEAR(d.tanggal) = YEAR(CURDATE()) THEN c.jumlah ELSE 0 END) AS des
+                    SUM(CASE WHEN MONTH(d.tanggal) = 1 THEN c.jumlah ELSE 0 END) AS jan,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 2 THEN c.jumlah ELSE 0 END) AS feb,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 3 THEN c.jumlah ELSE 0 END) AS mar,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 4 THEN c.jumlah ELSE 0 END) AS apr,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 5 THEN c.jumlah ELSE 0 END) AS mei,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 6 THEN c.jumlah ELSE 0 END) AS jun,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 7 THEN c.jumlah ELSE 0 END) AS jul,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 8 THEN c.jumlah ELSE 0 END) AS aug,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 9 THEN c.jumlah ELSE 0 END) AS sep,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 10 THEN c.jumlah ELSE 0 END) AS okt,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 11 THEN c.jumlah ELSE 0 END) AS nov,
+                    SUM(CASE WHEN MONTH(d.tanggal) = 12 THEN c.jumlah ELSE 0 END) AS des
                 FROM
                     barang a
                     INNER JOIN barang_detail b ON b.barang_id = a.id
@@ -384,10 +384,10 @@ class Mdl_penjualan extends Model
                     INNER JOIN penjualan d ON d.nonota = c.nonota
                 INNER JOIN pelanggan e ON e.id = d.pelanggan_id
                 WHERE
-                    a.is_delete = 'no' AND e.id = ? AND YEAR(d.tanggal) = YEAR(CURDATE())
+                    a.is_delete = 'no' AND e.id = ? AND YEAR(d.tanggal) = ?
                 GROUP BY
                     a.id, a.namabarang";
-        return $this->db->query($sql, $id)->getResult();
+        return $this->db->query($sql, [$id, $tahun])->getResult();
     }
 
     public function terimaBarang($nonota) {
