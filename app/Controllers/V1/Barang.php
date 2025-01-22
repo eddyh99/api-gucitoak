@@ -262,7 +262,15 @@ class Barang extends BaseController
         $status     = htmlspecialchars($this->request->getGet('status'));
         
         $result = $this->barang->setStatus_disposal($status, $id);
-        return $this->respond(error_msg(200,"barang",null,$id),200);
+        return $this->respond(error_msg(200,"barang",null,$result),200);
+    }
+
+    public function setStatus_opname(){
+        $id     = $this->request->getGet('id');
+        $status     = $this->request->getGet('status');
+        
+        $result = $this->barang->setStatus_opname($status, $id);
+        return $this->respond(error_msg(200,"barang",null,$result),200);
     }
 
 }

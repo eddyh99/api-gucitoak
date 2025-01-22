@@ -434,6 +434,7 @@ class Mdl_barang extends Model
     
     public function list_opname(){
         $sql="SELECT 
+                    adj.id,
                     b.id AS kodebrg,
                     b.namabarang AS nama_barang,
                     k.namakategori AS kategori,
@@ -448,6 +449,7 @@ class Mdl_barang extends Model
                         COALESCE(SUM(CASE WHEN rb.status = 'proses' THEN rbd.jumlah ELSE 0 END), 0) +  
                         COALESCE(SUM(dd.jumlah), 0) 
                     ) AS stok,
+                    adj.keterangan,
                     COALESCE(SUM(CASE WHEN adj.approved = 0 THEN adj.jumlah ELSE 0 END), 0) AS riil
                 FROM barang b
                 INNER JOIN kategori k ON b.id_kategori = k.id
@@ -456,7 +458,7 @@ class Mdl_barang extends Model
                 LEFT JOIN retur_beli_detail rbd ON bd.barcode = rbd.barcode
                 LEFT JOIN retur_beli rb ON rb.id = rbd.id
                 LEFT JOIN penjualan_detail pjd ON bd.barcode = pjd.barcode
-                LEFT JOIN penyesuaian adj ON bd.barcode = adj.barcode  -- Do not filter on adj.approved here
+                LEFT JOIN penyesuaian adj ON bd.barcode = adj.barcode AND adj.approved = 0  -- Do not filter on adj.approved here
                 LEFT JOIN disposal_detail dd ON dd.barcode = bd.barcode
                 WHERE b.is_delete = 'no'
                 GROUP BY b.id, b.namabarang, k.namakategori, b.stokmin
@@ -1003,6 +1005,29 @@ public function setStatus_disposal($status, $id) {
                 "message" => "Terjadi kesalahan pada server: " . $th->getMessage() // Menggunakan $th
             ];
         }
+}
+
+public function setStatus_opname($status, $id) {
+    $sql = "UPDATE penyesuaian SET approved = ? WHERE id = ?";
+
+    try {
+        if (!$this->db->query($sql, [$status, $id])) {
+            return (object) [
+                "code"    => 500,
+                "message" => "Gagal mengupdate status disposal"
+            ];
+        }
+        return (object) [
+            "code"    => 200, // Status code 200 untuk OK
+            "message" => "Status penyesuain berhasil diperbarui"
+        ];
+    } catch (\Throwable $th) {
+        // Menangani pengecualian
+        return (object) [
+            "code"    => 500,
+            "message" => "Terjadi kesalahan pada server: " . $th->getMessage() // Menggunakan $th
+        ];
+    }
 }
 
 }
