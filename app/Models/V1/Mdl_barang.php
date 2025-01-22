@@ -258,6 +258,7 @@ class Mdl_barang extends Model
                     LEFT JOIN (
                         SELECT DISTINCT barcode, SUM(jumlah) AS total_disposal
                         FROM disposal_detail
+                        WHERE approved = 1
                         GROUP BY barcode
                     ) dd ON bd.barcode = dd.barcode
                     
@@ -320,7 +321,8 @@ class Mdl_barang extends Model
                 -- "Out" part: Subquery for total disposal
                 LEFT JOIN (
                     SELECT DISTINCT barcode, SUM(jumlah) AS total_disposal
-                    FROM disposal_detail
+                    FROM disposal_detail 
+                    WHERE approved = 1
                     GROUP BY barcode
                 ) dd ON bd.barcode = dd.barcode
                 WHERE bd.barang_id = 10
@@ -391,6 +393,7 @@ class Mdl_barang extends Model
             LEFT JOIN (
                 SELECT DISTINCT barcode, SUM(jumlah) AS total_disposal
                 FROM disposal_detail
+                WHERE approved = 1
                 GROUP BY barcode
             ) dd ON bd.barcode = dd.barcode
             
@@ -581,6 +584,7 @@ class Mdl_barang extends Model
                 LEFT JOIN (
                     SELECT DISTINCT barcode, SUM(jumlah) AS total_disposal
                     FROM disposal_detail
+                    WHERE approved = 1
                     GROUP BY barcode
                 ) dd ON bd.barcode = dd.barcode
                 
@@ -653,6 +657,7 @@ public function get_laporan_barang() {
                 LEFT JOIN (
                     SELECT DISTINCT barcode, SUM(jumlah) AS total_disposal
                     FROM disposal_detail
+                    WHERE approved = 1
                     GROUP BY barcode
                 ) dd ON bd.barcode = dd.barcode
                 -- Subquery for the latest harga from pembelian
@@ -806,7 +811,7 @@ public function get_mutasi_stok($bulan, $tahun) {
                 INNER JOIN
                     disposal_detail dd ON dd.barcode = bd.barcode
                 WHERE
-                    YEAR(dd.tanggal) = $tahun AND MONTH(dd.tanggal) = $bulan
+                    YEAR(dd.tanggal) = $tahun AND MONTH(dd.tanggal) = $bulan AND dd.approved = 1
                 GROUP BY
                     bd.barang_id
             ) h ON h.barang_id = b.id
@@ -908,7 +913,7 @@ public function get_mutasi_stok($bulan, $tahun) {
                     INNER JOIN
                         disposal_detail dd ON dd.barcode = bd.barcode
                     WHERE
-                        dd.tanggal < '$tahun-$bulan-01'
+                        dd.tanggal < '$tahun-$bulan-01' AND dd.approved = 1
                     GROUP BY
                         bd.barang_id
                 ) h ON h.barang_id = b.id
