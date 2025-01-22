@@ -252,4 +252,17 @@ class Barang extends BaseController
 
     }
 
+    public function get_disposal(){
+        $result = $this->barang->get_disposal();
+        return $this->respond(error_msg(200,"barang",null,$result),200);
+    }
+
+    public function setStatus_disposal(){
+        $id     = htmlspecialchars($this->request->getGet('id'));
+        $status     = htmlspecialchars($this->request->getGet('status'));
+        
+        $result = $this->barang->setStatus_disposal($status, $id);
+        return $this->respond(error_msg(200,"barang",null,$id),200);
+    }
+
 }

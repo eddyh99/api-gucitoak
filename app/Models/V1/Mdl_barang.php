@@ -960,4 +960,44 @@ public function get_katalog($kategori) {
     return $this->db->query($sql, $kategori)->getResult();
 }
 
+public function get_disposal() {
+    $sql = "SELECT
+                dd.id,
+                b.namabarang,
+                k.namakategori,
+                dd.jumlah,
+                dd.alasan
+            FROM
+                disposal_detail dd
+                INNER JOIN barang_detail bd ON bd.barcode = dd.barcode
+                INNER JOIN barang b ON b.id = bd.barang_id
+                INNER JOIN kategori k ON k.id = b.id_kategori
+            WHERE
+                dd.approved = 0";
+    return $this->db->query($sql)->getResult();
+}
+
+public function setStatus_disposal($status, $id) {
+        $sql = "UPDATE disposal_detail SET approved = ? WHERE id = ?";
+    
+        try {
+            if (!$this->db->query($sql, [$status, $id])) {
+                return (object) [
+                    "code"    => 500,
+                    "message" => "Gagal mengupdate status disposal"
+                ];
+            }
+            return (object) [
+                "code"    => 200, // Status code 200 untuk OK
+                "message" => "Status disposal berhasil diperbarui"
+            ];
+        } catch (\Throwable $th) {
+            // Menangani pengecualian
+            return (object) [
+                "code"    => 500,
+                "message" => "Terjadi kesalahan pada server: " . $th->getMessage() // Menggunakan $th
+            ];
+        }
+}
+
 }
