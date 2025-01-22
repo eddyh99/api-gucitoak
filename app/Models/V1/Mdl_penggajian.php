@@ -43,4 +43,23 @@ class Mdl_penggajian extends Model
             ];
         }
     }
+
+    public function getList_gaji($bulan) {
+        $sql = "SELECT
+                    a.gajipokok,
+                    a.uangharian,
+                    a.insentif,
+                    a.komisi,
+                    a.status,
+                    b.namasales
+                FROM
+                    gaji a
+                    INNER JOIN sales b ON b.id = a.sales_id
+                WHERE
+                    a.bulan = ?
+                GROUP BY
+                    a.sales_id";
+
+        return $this->db->query($sql, $bulan)->getResult();
+    }
 }

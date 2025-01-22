@@ -35,4 +35,10 @@ class Penggajian extends BaseController
 
         return $this->respond(error_msg(200, "penggajian", null, $result->message), 200);
     }
+
+    public function listGaji_bulanan() {
+        $bulan = $this->request->getGet('bulan');
+        $result = $this->gaji->getList_gaji($bulan);
+        return $this->respond(error_msg(200,"penggajian",null,$result),200);
+    }
 }
