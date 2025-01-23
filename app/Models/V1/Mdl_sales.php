@@ -205,4 +205,23 @@ class Mdl_sales extends Model
 
         return $this->db->query($sql, $id)->getRow();
     }
+
+    public function getby_id($username) {
+        $sql = "SELECT * FROM sales WHERE username=?";
+	    $query = $this->db->query($sql, $username)->getRow();
+
+        if (!$query) {
+	        $error=[
+	            "code"       => "400",
+	            "message"    => "Username not found"
+	        ];
+            return (object) $error;
+        }
+
+        $response=[
+            "code"       => "200",
+            "message"    => $query
+        ];
+        return (object) $response;
+    }
 }

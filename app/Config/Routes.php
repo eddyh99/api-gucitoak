@@ -8,4 +8,5 @@ use CodeIgniter\Router\RouteCollection;
 
 // HOMEPAGE
 $routes->get('/', 'Homepage::index');
+$routes->post('/auth/sales/signin', 'Auth::signin_sales');
    

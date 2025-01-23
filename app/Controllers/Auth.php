@@ -14,6 +14,7 @@ class Auth extends BaseController
         $this->member  = model('App\Models\V1\Mdl_member');
         $this->subscription  = model('App\Models\V1\Mdl_subscription');
 		$this->pengguna       = model('App\Models\V1\Mdl_pengguna');
+		$this->sales  = model('App\Models\V1\Mdl_sales');
 	}
 	
 
@@ -182,4 +183,44 @@ class Auth extends BaseController
 	    return $this->respond($response);
         
 	}
+
+	public function signin_sales(){
+	    $validation = $this->validation;
+        $validation->setRules([
+					'username' => [
+						'rules'  => 'required',
+						'errors' => [
+							'required'      => 'username is required',
+						]
+					],
+					'password' => [
+					    'rules'  => 'required|min_length[8]',
+					    'errors' =>  [
+					        'required'      => 'Password is required',
+					        'min_length'    => 'Min length password is 8 character'
+					    ]
+					],
+            ]);
+        
+        if (!$validation->withRequest($this->request)->run()){
+            return $this->fail($validation->getErrors());
+        }
+        
+	    $data           = $this->request->getJSON();
+
+        $sales = $this->sales->getby_id($data->username);
+	    if (@$sales->code==400){
+            return $this->respond(error_msg($sales->code,"auth","01",$sales),$sales->code);
+	    }
+
+        if ($data->password == $sales->message->password) {
+        	    $response=$sales->message;
+				$response->role = 'sales';
+				$response->akses = $this->pengguna->getAkses_byRole('sales');
+                return $this->respond(error_msg(200,"auth","02",$response),200);
+        }else{
+                $response= "Invalid username or password";
+                return $this->respond(error_msg(400,"auth","02",$response),400);
+}
+    }
 }
