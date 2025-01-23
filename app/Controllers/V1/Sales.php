@@ -62,6 +62,7 @@ class Sales extends BaseController
 	    
 
         $mdata = array(
+            'avatar' => htmlspecialchars($data->avatar), 
             'namasales' => htmlspecialchars($data->namasales), 
             'alamat'    => htmlspecialchars($data->alamat), 
             'kota'      => htmlspecialchars($data->kota), 
@@ -125,6 +126,10 @@ class Sales extends BaseController
             'komisi'    => filter_var($data->komisi,FILTER_SANITIZE_NUMBER_FLOAT,FILTER_FLAG_ALLOW_FRACTION)/100, 
 	        "update_at"    => date("Y-m-d H:i:s")
         );
+
+        if ($data->avatar) {
+            $mdata['avatar'] = htmlspecialchars($data->avatar); // Tambahkan avatar baru ke array
+        }
 
         $id     = htmlspecialchars($this->request->getGet('id'));
 	    $result = $this->sales->ubah($mdata,$id);
