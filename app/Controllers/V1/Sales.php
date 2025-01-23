@@ -70,6 +70,8 @@ class Sales extends BaseController
             'omzet'     => filter_var($data->omzet,FILTER_SANITIZE_NUMBER_INT), 
             'gajipokok' => filter_var($data->gajipokok,FILTER_SANITIZE_NUMBER_INT), 
             'komisi'    => filter_var($data->komisi,FILTER_SANITIZE_NUMBER_FLOAT,FILTER_FLAG_ALLOW_FRACTION)/100, 
+            'username' => htmlspecialchars($data->username),
+            'password' => htmlspecialchars($data->password),
     	    "created_at"    => date("Y-m-d H:i:s")
         );
 
@@ -124,11 +126,15 @@ class Sales extends BaseController
             'omzet'     => filter_var($data->omzet,FILTER_SANITIZE_NUMBER_INT), 
             'gajipokok' => filter_var($data->gajipokok,FILTER_SANITIZE_NUMBER_INT), 
             'komisi'    => filter_var($data->komisi,FILTER_SANITIZE_NUMBER_FLOAT,FILTER_FLAG_ALLOW_FRACTION)/100, 
+            'username' => htmlspecialchars($data->username),
 	        "update_at"    => date("Y-m-d H:i:s")
         );
 
         if ($data->avatar) {
             $mdata['avatar'] = htmlspecialchars($data->avatar); // Tambahkan avatar baru ke array
+        }
+        if ($data->password) {
+            $mdata['password'] = htmlspecialchars($data->password); // ubah password
         }
 
         $id     = htmlspecialchars($this->request->getGet('id'));
