@@ -146,11 +146,59 @@ class Mdl_sales extends Model
     public function get_sales_report($id) {
         $sql = "SELECT
                     a.namasales,
-                    a.komisi, -- belum fix
+                    COALESCE(p.komisi, 0) as komisi,
                     a.gajipokok,
-                    '000002, 000003' as detailnota -- belum fix
+                    p.detailnota as detailnota
                 FROM
                     sales a
+                    LEFT JOIN (
+                    SELECT
+                        GROUP_CONCAT(a.nonota) AS detailnota,
+                        a.sales_id,
+                        a.tanggal,
+                        SUM(
+                        c.jumlah * (
+                            CASE
+                            WHEN b.harga = 1 THEN f.harga1
+                            WHEN b.harga = 2 THEN f.harga2
+                            WHEN b.harga = 3 THEN f.harga3
+                            ELSE 0
+                            END
+                        )
+                        ) * e.komisi AS komisi
+                    FROM
+                        penjualan a
+                        INNER JOIN pelanggan b ON a.pelanggan_id = b.id
+                        INNER JOIN penjualan_detail c ON a.nonota = c.nonota
+                        INNER JOIN barang_detail d ON c.barcode = d.barcode
+                        INNER JOIN sales e ON a.sales_id = e.id
+                        LEFT JOIN (
+                        SELECT
+                            hr.id_barang,
+                            hr.harga1,
+                            hr.harga2,
+                            hr.harga3,
+                            hr.tanggal
+                        FROM
+                            harga hr
+                        ) f ON f.id_barang = d.barang_id
+                        AND f.tanggal = (
+                        SELECT
+                            MAX(hr2.tanggal)
+                        FROM
+                            harga hr2
+                        WHERE
+                            hr2.id_barang = f.id_barang
+                            AND hr2.tanggal <= a.tanggal
+                        )
+                        WHERE STR_TO_DATE(a.tanggal, '%Y-%m-%d') BETWEEN DATE_FORMAT(
+                            DATE_SUB(CURDATE(), INTERVAL 1 MONTH),
+                            '%Y-%m-01')
+                        AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+                    GROUP BY
+                        b.namapelanggan,
+                        e.id
+                    ) p ON p.sales_id = a.id
                 WHERE
                     a.is_delete = 'no'
                     AND a.id = ?";
