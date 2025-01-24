@@ -41,6 +41,25 @@ class Mdl_member extends Model
         ];
         return (object) $response;
     }
+
+    public function getby_Role($role) {
+        $sql = "SELECT * FROM pengguna WHERE role=? AND status='active'";
+	    $query = $this->db->query($sql, $role)->getRow();
+
+        if (!$query) {
+	        $error=[
+	            "code"       => "400",
+	            "message"    => "Role not found"
+	        ];
+            return (object) $error;
+        }
+
+        $response=[
+            "code"       => "200",
+            "message"    => $query
+        ];
+        return (object) $response;
+    }
     
     public function change_password($mdata, $where) {
         $member=$this->db->table("member");

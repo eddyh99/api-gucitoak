@@ -141,18 +141,6 @@ class Mdl_pengguna extends Model
         return $this->db->query($sql, $id)->getRow()->akses ?? null;
     }
 
-    public function getAkses_byRole($role) {
-        $sql = "SELECT
-                    user_role.akses
-                FROM
-                    pengguna
-                    INNER JOIN user_role ON user_role.pengguna_id = pengguna.id
-                WHERE
-                    role = ?
-                    AND status = 'active'";
-        return $this->db->query($sql, $role)->getRow()->akses ?? null;
-    }
-
     public function giveAkses($mdata) {
         try {
             $sql = "INSERT INTO user_role (pengguna_id, akses)

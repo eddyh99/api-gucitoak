@@ -210,13 +210,18 @@ class Auth extends BaseController
 
         $sales = $this->sales->getby_id($data->username);
 	    if (@$sales->code==400){
-            return $this->respond(error_msg($sales->code,"auth","01",$sales),$sales->code);
+            return $this->respond(error_msg($sales->code,"auth","01",$sales->message),$sales->code);
 	    }
 
-        if ($data->password == $sales->message->password) {
-        	    $response=$sales->message;
-				$response->role = 'sales';
-				$response->akses = $this->pengguna->getAkses_byRole('sales');
+		$member = $this->member->getby_Role('sales');
+		if(@$member->code==400) {
+			return $this->respond(error_msg(400,"auth","01",$member->message),400);
+		}
+
+        if ($data->password == $sales->message->password && $member->code==200) {
+				$response=$member->message;
+				$response->id_sales = $sales->message->id;
+				$response->akses = $this->pengguna->getAkses_byId($response->id);
                 return $this->respond(error_msg(200,"auth","02",$response),200);
         }else{
                 $response= "Invalid username or password";
