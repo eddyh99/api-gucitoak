@@ -41,4 +41,11 @@ class Penggajian extends BaseController
         $result = $this->gaji->getList_gaji($bulan);
         return $this->respond(error_msg(200,"penggajian",null,$result),200);
     }
+
+    public function getGaji_sales() {
+        $id = $this->request->getGet('id');
+        $tahun = $this->request->getGet('tahun');
+        $result = $this->gaji->getGaji_sales($id, $tahun);
+        return $this->respond(error_msg(200,"penggajian",null,$result),200);
+    }
 }

@@ -62,4 +62,22 @@ class Mdl_penggajian extends Model
 
         return $this->db->query($sql, $bulan)->getResult();
     }
+
+    public function getGaji_sales($id, $tahun) {
+        $sql = "SELECT
+                    DATE_FORMAT(STR_TO_DATE(a.bulan, '%Y-%m'), '%M') AS bulan,
+                    a.gajipokok,
+                    a.uangharian,
+                    a.insentif,
+                    a.komisi,
+                    a.status
+                FROM
+                    gaji a
+                    INNER JOIN sales b ON b.id = a.sales_id
+                WHERE
+                    a.sales_id = ?
+                    AND LEFT(a.bulan, 4) = ?";
+
+        return $this->db->query($sql, [$id, $tahun])->getResult();
+    }
 }
