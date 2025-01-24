@@ -192,9 +192,9 @@ class Mdl_sales extends Model
                             AND hr2.tanggal <= a.tanggal
                         )
                         WHERE STR_TO_DATE(a.tanggal, '%Y-%m-%d') BETWEEN DATE_FORMAT(
-                            DATE_SUB(CURDATE(), INTERVAL 1 MONTH),
+                            DATE_SUB(CURDATE(), INTERVAL 2 MONTH),
                             '%Y-%m-01')
-                        AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+                        AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 2 MONTH))
                     GROUP BY
                         b.namapelanggan,
                         e.id

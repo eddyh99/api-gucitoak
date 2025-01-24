@@ -51,6 +51,7 @@ class Mdl_penggajian extends Model
                     a.insentif,
                     a.komisi,
                     a.status,
+                    a.detailnota,
                     b.namasales
                 FROM
                     gaji a

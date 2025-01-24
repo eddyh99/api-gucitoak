@@ -102,4 +102,11 @@ class Laporan extends BaseController
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 
+    public function penjualan_byNota() {
+        $nonota = explode(',', $this->request->getGet('nonota'));
+        $placeholders = rtrim(str_repeat('?,', count($nonota)), ',');
+        $result = $this->penjualan->get_penjualan_byNota($nonota, $placeholders);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
 }
