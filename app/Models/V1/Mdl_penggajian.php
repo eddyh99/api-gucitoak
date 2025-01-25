@@ -71,6 +71,7 @@ class Mdl_penggajian extends Model
                     a.uangharian,
                     a.insentif,
                     a.komisi,
+                    a.detailnota,
                     a.status
                 FROM
                     gaji a
