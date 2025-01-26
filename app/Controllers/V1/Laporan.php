@@ -109,4 +109,18 @@ class Laporan extends BaseController
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
 
+    public function omzet_sales() {
+        $id = $this->request->getGet('id');
+        $date = new DateTime(date('Y-m'));
+        $bulan[] = $date->format('Y-m');
+        
+        // Menghitung bulan dari bulan saat ini hingga 12 bulan sebelumnya
+        for ($i = 1; $i <= 12; $i++) {
+            $bulan[] = $date->modify("-1 month")->format('Y-m');
+        }
+        
+        $result = $this->penjualan->get_omzet_sales(array_reverse($bulan), $id);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
+
 }
