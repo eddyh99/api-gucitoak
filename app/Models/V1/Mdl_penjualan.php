@@ -538,4 +538,63 @@ class Mdl_penjualan extends Model
                     a.nonota";
         return $this->db->query($sql, $nonota)->getResult();
     }
+
+    public function get_penjualan_sales_bulan_sekarang($id) {
+        $sql = "SELECT
+                    a.nonota,
+                    a.tanggal,
+                    SUM(
+                    c.jumlah * (
+                        CASE
+                        WHEN b.harga = 1 THEN f.harga1
+                        WHEN b.harga = 2 THEN f.harga2
+                        WHEN b.harga = 3 THEN f.harga3
+                        ELSE 0
+                        END
+                    )
+                    ) AS nominal,
+                    SUM(
+                    c.jumlah * (
+                        CASE
+                        WHEN b.harga = 1 THEN f.harga1
+                        WHEN b.harga = 2 THEN f.harga2
+                        WHEN b.harga = 3 THEN f.harga3
+                        ELSE 0
+                        END
+                    )
+                    ) * e.komisi AS komisi
+                FROM
+                    penjualan a
+                    INNER JOIN pelanggan b ON a.pelanggan_id = b.id
+                    INNER JOIN penjualan_detail c ON a.nonota = c.nonota
+                    INNER JOIN barang_detail d ON c.barcode = d.barcode
+                    INNER JOIN sales e ON a.sales_id = e.id
+                    LEFT JOIN (
+                    SELECT
+                        hr.id_barang,
+                        hr.harga1,
+                        hr.harga2,
+                        hr.harga3,
+                        hr.tanggal
+                    FROM
+                        harga hr
+                    ) f ON f.id_barang = d.barang_id
+                    AND f.tanggal = (
+                    SELECT
+                        MAX(hr2.tanggal)
+                    FROM
+                        harga hr2
+                    WHERE
+                        hr2.id_barang = f.id_barang
+                        AND hr2.tanggal <= a.tanggal
+                    )
+                WHERE
+                    MONTH(a.tanggal) = MONTH(CURDATE())
+                    AND YEAR(a.tanggal) = YEAR(CURDATE())
+                    AND e.id = ?
+                GROUP BY
+                    a.nonota";
+
+        return $this->db->query($sql, [$id])->getResult();
+    }
 }

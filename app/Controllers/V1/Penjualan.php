@@ -87,4 +87,10 @@ class Penjualan extends BaseController
         $result = $this->penjualan->terimaBarang($nonota);
         return $this->respond(error_msg(200,"penjualan",null,$result),200);
     }
+
+    public function penjualan_sales_bulan_sekarang() {
+        $id = $this->request->getGet('id');
+        $result = $this->penjualan->get_penjualan_sales_bulan_sekarang($id);
+        return $this->respond(error_msg(200,"penjualan",null,$result),200);
+    }
 }
