@@ -613,7 +613,7 @@ public function get_laporan_barang() {
                     COALESCE(SUM(DISTINCT pjd.total_penjualan), 0) + 
                     COALESCE(SUM(DISTINCT dd.total_disposal), 0)
                 ) AS stok,
-                COALESCE(pjd.avg_penjualan, 0) AS avg_penjualan,
+                ROUND(COALESCE(pjd.avg_penjualan, 0), 2) AS avg_penjualan,
                 lp.harga_terbaru
             FROM barang b
                 INNER JOIN (SELECT MAX(tanggal), harga1,harga2, harga3, id_barang FROM harga GROUP BY id_barang) hr ON b.id=hr.id_barang

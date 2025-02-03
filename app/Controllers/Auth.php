@@ -220,6 +220,7 @@ class Auth extends BaseController
 
         if ($data->password == $sales->message->password && $member->code==200) {
 				$response=$member->message;
+				$response->sales = $sales->message->namasales;
 				$response->id_sales = $sales->message->id;
 				$response->akses = $this->pengguna->getAkses_byId($response->id);
                 return $this->respond(error_msg(200,"auth","02",$response),200);

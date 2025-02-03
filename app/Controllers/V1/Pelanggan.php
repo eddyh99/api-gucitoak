@@ -68,6 +68,7 @@ class Pelanggan extends BaseController
             'kota'      => htmlspecialchars($data->kota), 
             'harga'     => htmlspecialchars($data->harga), 
             'telp'      => htmlspecialchars($data->telp), 
+            'gmaps'     => htmlspecialchars($data->gmaps),
             'plafon'    => filter_var($data->plafon, FILTER_SANITIZE_NUMBER_INT), 
             'maxnota'   => filter_var($data->maxnota, FILTER_SANITIZE_NUMBER_INT), 
     	    "created_at"    => date("Y-m-d H:i:s")
@@ -123,6 +124,7 @@ class Pelanggan extends BaseController
             'kota'      => htmlspecialchars($data->kota), 
             'telp'      => htmlspecialchars($data->telp), 
             'harga'     => htmlspecialchars($data->harga), 
+            'gmaps'     => htmlspecialchars($data->gmaps),
             'plafon'    => filter_var($data->plafon, FILTER_SANITIZE_NUMBER_INT), 
             'maxnota'   => filter_var($data->maxnota, FILTER_SANITIZE_NUMBER_INT), 
 	        "update_at"    => date("Y-m-d H:i:s")
