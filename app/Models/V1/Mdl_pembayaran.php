@@ -17,7 +17,7 @@ class Mdl_pembayaran extends Model
     {
         $sql = "SELECT 
                     a.nonota,
-                    p.tanggal,
+                    DATE(p.tanggal) as tanggal,
                     pel.namapelanggan,
                     p.method,
                     COALESCE(status.totalcicilan, 0) as totalcicilan,
