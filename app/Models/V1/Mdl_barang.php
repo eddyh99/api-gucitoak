@@ -325,10 +325,10 @@ class Mdl_barang extends Model
                     WHERE approved = 1
                     GROUP BY barcode
                 ) dd ON bd.barcode = dd.barcode
-                WHERE bd.barang_id = 10
+                WHERE bd.barang_id = ?
                 GROUP BY bd.barcode, bd.expired
                 HAVING jumlah > 0;';
-        $query=$this->db->query($sql,$kodebarang);
+        $query=$this->db->query($sql,[$kodebarang]);
         return $query->getResult();
     }
     
